@@ -1,0 +1,21 @@
+{% block title %}Consultar{% endblock %}
+{% block content %}
+<div class="col-md-12">
+<h1>Consultar</h1>
+<a href="{{ url_for('consultarx') }}">En excel</a>
+<table class="table table-bordered table-hover table-condensed">
+<th>Pieza</th>
+<th>CantMedio</th>
+<th>LugarDescarga</th>
+<th>Cliente</th>
+{% for i in datos %}
+    <tr>
+		<td>{{ i[ 'Pieza'] }}</td>
+		<td>{{ i['CantMedio'] }}</td>
+		<td>{{ i['LugarDescarga'] }}</td>
+		<td>{{ i['Cliente'] }}</td>
+    </tr>
+{% endfor %}
+</table>
+</div>
+{% endblock %}

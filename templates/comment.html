@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% from '_macro.html' import render_fields %}
+{% block title %}Comment{% endblock %}
+{% block header %}
+<h2>Envienos sus comentarios...</h2>
+{% endblock %}
+{% block content %}
+<div class="col-md-3"></div>
+<div class="col-md-6">
+	<form method='POST'>
+		{{ form.csrf_token }}
+		<div class="form-group">
+		{{ render_fields(form.comment, class="form-control") }}
+		</div>
+		{{ form.honeypo }}
+		{{ form.recaptcha }}
+		<button type="submit" class="btn btn-default">Submit</button>
+	</form>
+</div>
+<div class="col-md-3"></div>
+
+{% endblock %}

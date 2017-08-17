@@ -1,0 +1,53 @@
+{% macro show_list_h(value) %}
+	<h1>{{ value }}</h1>
+	<h2>{{ value }}</h2>
+	<h3>{{ value }}</h3>
+	<h4>{{ value }}</h4>
+	<h5>{{ value }}</h5>
+{% endmacro %}
+{% macro render_li_link(urls)%}
+    {% for url in urls %}
+        <li {% if request.endpoint == url['url'] %}class="active"{% endif %}><a href="{{ url_for(url['url']) }}">{{ url['name'] }}</a></li>
+    {% endfor %}
+{% endmacro %}
+{% macro messages() %}
+    {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <h3><span class="label label-{{ message[0] }}">{{ message[1] }}</span></h3>
+            {% endfor %}
+            {% endif %}
+        {% endwith %}
+{% endmacro %}
+
+{% macro render_pagination(vista, cantidad, activo) %}
+<ul class="pagination pagination-sm ">
+            <li {% if (activo - 1) == 0 %}class="disabled">
+                <a href="#">
+            {% else %}><a href="{{ url_for(vista) }}/{{ activo - 1 }}">{% endif %}
+                <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
+              </a>
+            </li>
+            {% for i in range(1,cantidad) %}
+                <li {% if i == activo %}class="active"{% endif %}>
+                    <a href="{{ url_for(vista) }}/{{ i }}">{{ i }}</a></li>
+            {% endfor %}
+            <li>
+              <a href="{{ url_for(vista) }}/{{ cantidad }}">
+                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+              </a>
+            </li>
+        </ul>
+{% endmacro %}
+
+{% macro render_fields(field) %}
+	<td> {{ field.label }}
+	<dd> {{ field(**kwargs)|safe }}
+	{% if field.errors %}
+		<ul>
+			{% for error in field.errors %}
+				<li>{{ error }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+{% endmacro %}
