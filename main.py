@@ -16,7 +16,6 @@ from helpers import date_format
 import flask_excel as excel
 import threading
 import forms
-import pymssql
 
 app = Flask(__name__)
 #cargo las configuraciones desde clases
@@ -344,42 +343,6 @@ def docustomexport():
     column_names = ['username', 'text', 'create_date']
     return excel.make_response_from_query_sets(comment_list,
         column_names=column_names, file_type="xlsx", file_name='comments')
-
-
-@app.route('/consultar.xlsx')
-def consultarx():
-    server = '192.168.15.61'
-    user = 'sa'
-    password = 'R3dyt3ch'
-    datos = []
-    with pymssql.connect(server, user, password, 'MR_DADA') as conn:
-        with conn.cursor(as_dict=True) as cursor:
-            cursor.execute('SELECT Pieza, CantMedio, LugarDescarga, Cliente FROM MR_RELEASE_CKD_DELFOR')
-            for row in cursor:
-                datos.append(row)
-
-    return excel.make_response_from_records(datos, file_type="xlsx", file_name='consultar')
-
-
-@app.route('/consultar')
-def consultar():
-    server = '192.168.15.61'
-    user = 'sa'
-    password = 'R3dyt3ch'
-    datos = []
-
-    with pymssql.connect(server, user, password, 'MR_DADA') as conn:
-        with conn.cursor(as_dict=True) as cursor:
-            cursor.execute('SELECT Pieza, CantMedio, LugarDescarga, Cliente FROM MR_RELEASE_CKD_DELFOR')
-            for row in cursor:
-                datos.append(row)
-
-    return render_template('consultar.html', datos=datos)
-
-
-@app.route('/footer')
-def footer():
-    return render_template('footer.html')
 
 
 if __name__ == '__main__':
