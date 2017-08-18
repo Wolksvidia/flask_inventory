@@ -13,7 +13,9 @@
         <h5>{{ date_format(comment.create_date) }}</h5>
         <p>{{ comment.text }}</p>
         {% endfor %}
+		
         {{ render_pagination('view_comments',4,activo) }}
+		
     {% endif %}
 </div>
 <div class="col-md-3"></div>

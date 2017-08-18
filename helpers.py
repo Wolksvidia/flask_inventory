@@ -1,5 +1,6 @@
 from models import Location
 
+
 def date_format(date):
     meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo',
         'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre',

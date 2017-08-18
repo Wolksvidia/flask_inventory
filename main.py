@@ -12,7 +12,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from config import DevelopmentConfig
 from models import db, User, Comment, Location, Device
-from helpers import date_format
+#from helpers import date_format
 import flask_excel as excel
 import threading
 import forms
@@ -74,6 +74,7 @@ def berfore_request():
 #            {'url': 'view_comments', 'name': 'View Comments'},
             {'url': 'new_location', 'name': 'Locations'},
             {'url': 'new_device', 'name': 'New Device'},
+            {'url': 'view_devices', 'name': 'View Devices'},
             {'url': 'logout', 'name': 'Logout'})
 #        print(g.urls)
 
@@ -124,38 +125,6 @@ def logout():
     flash(('info', 'Vuelva pronto!.'))
     return redirect(url_for('index', urls=g.urls))
 
-
-@app.route('/comment', methods=['GET', 'POST'])
-def comment():
-    comment_form = forms.CommentForm(request.form)
-    #manejando sessiones (como si fuera un diccionario)
-#    if 'username' in session:
-#        user = session['username']
-#        comment_form.username.data = user
-    if request.method == 'POST' and comment_form.validate():
-        user_id = session['user_id']
-        comment = Comment(user_id=user_id,
-            text=comment_form.comment.data)
-        try:
-            db.session.add(comment)
-            db.session.commit()
-            flash(('success', 'Comentario guardado exitosamente!.'))
-            return redirect(url_for('index', urls=g.urls))
-        except Exception as e:
-            print(e)
-            flash(('danger', 'Lo sentimos algo salio mal!.'))
-    return render_template('comment.html', form=comment_form, urls=g.urls)
-
-
-@app.route('/view_comments', methods=['GET'])
-@app.route('/view_comments/<int:page>', methods=['GET'])
-def view_comments(page=1):
-#paginate(pagina inicial, cantidad de registros, pagina invalida)
-    per_page = 3
-    comment_list = Comment.query.join(User).add_columns(User.username,
-        Comment.text, Comment.create_date).paginate(page, per_page, False)
-    return render_template('view_comments.html', comments=comment_list,
-        activo=page, date_format=date_format, urls=g.urls)
 
 
 @app.route('/create_user', methods=['GET', 'POST'])
@@ -229,6 +198,18 @@ def new_device(id=None):
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
     return render_template('new_device.html', form=form, urls=g.urls)
+
+
+@app.route('/device/view', methods=['GET'])
+@app.route('/device/view/<int:page>', methods=['GET'])
+def view_devices(page=1, per_page=2):
+#paginate(pagina inicial, cantidad de registros, pagina invalida)
+    pages = int(round((Device.query.count() / per_page )+ 0.1))
+    dev_list = Device.query.join(Location).add_columns(Device.id, Device.name,
+        Device.serial_number, Device.description,
+        Location.location_name).order_by(Device.name).paginate(page, per_page, False)
+    return render_template('view_devices.html', devs=dev_list,
+        activo=page, pages=pages, urls=g.urls)
 
 
 @app.route('/device/del/<int:id>')

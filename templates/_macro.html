@@ -28,12 +28,13 @@
                 <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
               </a>
             </li>
-            {% for i in range(1,cantidad) %}
+            {% for i in range(1,cantidad+1) %}
                 <li {% if i == activo %}class="active"{% endif %}>
                     <a href="{{ url_for(vista) }}/{{ i }}">{{ i }}</a></li>
             {% endfor %}
-            <li>
-              <a href="{{ url_for(vista) }}/{{ cantidad }}">
+            <li {% if activo == cantidad %}class="disabled">
+				<a href="#">
+            {% else %}><a href="{{ url_for(vista) }}/{{ activo + 1 }}">{% endif %}
                 <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
               </a>
             </li>
