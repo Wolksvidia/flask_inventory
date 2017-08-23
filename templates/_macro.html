@@ -20,25 +20,27 @@
         {% endwith %}
 {% endmacro %}
 
-{% macro render_pagination(vista, cantidad, activo) %}
-<ul class="pagination pagination-sm ">
-            <li {% if (activo - 1) == 0 %}class="disabled">
-                <a href="#">
-            {% else %}><a href="{{ url_for(vista) }}/{{ activo - 1 }}">{% endif %}
-                <span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
-              </a>
-            </li>
-            {% for i in range(1,cantidad+1) %}
-                <li {% if i == activo %}class="active"{% endif %}>
-                    <a href="{{ url_for(vista) }}/{{ i }}">{{ i }}</a></li>
-            {% endfor %}
-            <li {% if activo == cantidad %}class="disabled">
-				<a href="#">
-            {% else %}><a href="{{ url_for(vista) }}/{{ activo + 1 }}">{% endif %}
-                <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
-              </a>
-            </li>
-        </ul>
+{% macro render_pagination(vista, cantidad, activo, per_page) %}
+	{% if (cantidad != 0 and cantidad != 1) %}
+		<ul class="pagination pagination-sm ">
+					<li {% if (activo - 1) == 0 %}class="disabled">
+						<a href="#">
+					{% else %}><a href="{{ url_for(vista) }}/{{ activo - 1 }}/{{ per_page }}">{% endif %}
+						<span class="glyphicon glyphicon-backward" aria-hidden="true"></span>
+					  </a>
+					</li>
+					{% for i in range(1,cantidad+1) %}
+						<li {% if i == activo %}class="active"{% endif %}>
+							<a href="{{ url_for(vista) }}/{{ i }}/{{ per_page }}">{{ i }}</a></li>
+					{% endfor %}
+					<li {% if activo == cantidad %}class="disabled">
+						<a href="#">
+					{% else %}><a href="{{ url_for(vista) }}/{{ activo + 1 }}/{{ per_page }}">{% endif %}
+						<span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+					  </a>
+					</li>
+				</ul>
+	{% endif %}
 {% endmacro %}
 
 {% macro render_fields(field) %}

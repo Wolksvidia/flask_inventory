@@ -51,14 +51,14 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     
     <div class="jumbotron">
+	{% block header %}
       <div class="container">
-        {% block header %}
         <h1>Inventario</h1>
         <p>Projecto de aplicacion para seguimiento de asignacion de equipos, construida en Flask/Python y Bootstrap.</p><!--
         <p><a class="btn btn-primary btn-lg" href="" role="button">Learn more »</a></p>-->
-        {% endblock %}
         {{ messages() }}
       </div>
+	  {% endblock %}
     </div>
     {% block content %}
     <div class="container">
@@ -92,13 +92,11 @@
 		</footer>
 
 		 <!-- /container -->
-	
-
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-   
-    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>  
-
+    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script> 
+	{% block script %}
+	{% endblock %}
 </body></html>

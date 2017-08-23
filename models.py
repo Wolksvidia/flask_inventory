@@ -73,6 +73,7 @@ class Device(db.Model):
         self.description = description
         self.type_device = type_device
         self.active = True
+        self.assigned_to = None
         self.serial_number = serial_number
         self.teamviwer = teamviwer
         self.location = location

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, PasswordField, TextAreaField, SelectField
+from wtforms import StringField, HiddenField, PasswordField, TextAreaField, SelectField, FieldList
 from wtforms import validators
 from wtforms.fields.html5 import EmailField
 from models import User, Location, Device
@@ -125,3 +125,10 @@ class CreateLocation(FlaskForm):
         location = Location.query.filter_by(location_name=name).first()
         if location is not None:
             raise validators.ValidationError('La locacion ya se encuentra registrado!')
+
+
+class AssignDevice(FlaskForm):
+    user = SelectField('Users', coerce=int)
+    device = SelectField('Devices', coerce=int)
+    #user_list = FieldList(users)
+    #device_list = FieldList(devices)

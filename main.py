@@ -55,28 +55,17 @@ def page_not_found(error):
 #Este decorador hace que la funcion se ejecute antes de cualquier otra peticion
 @app.before_request
 def berfore_request():
-#    g.test = 'test'
     if 'username' not in session:
-        #endpoint da la ruta a la que se esta queriendo acceder
-#        print(request.endpoint)
-#        print('El usuario necesita login!!"')
-#        flash(('info', 'Solo usuarios autenticados tienen acceso al recurso solicitado.'))
         g.urls = ({'url': 'index', 'name': 'Home'},
             {'url': 'login', 'name': 'Login'},
             {'url': 'create_user', 'name': 'New User'})
-#        print(g.urls)
-#        return redirect(url_for('login'))
     else:
-#        flash(('info', 'Ya estas logueado!'))
-#        return redirect(url_for('index'))
         g.urls = ({'url': 'index', 'name': 'Home'},
-#            {'url': 'comment', 'name': 'Comment'},
-#            {'url': 'view_comments', 'name': 'View Comments'},
             {'url': 'new_location', 'name': 'Locations'},
             {'url': 'new_device', 'name': 'New Device'},
+            {'url': 'assign_device', 'name': 'Assign Device'},
             {'url': 'view_devices', 'name': 'View Devices'},
             {'url': 'logout', 'name': 'Logout'})
-#        print(g.urls)
 
 
 #Este se prosesa posteriormente de que se procese la url solicitada
@@ -90,13 +79,6 @@ def after_request(response):
 @app.route('/')
 @app.route('/index')
 def index():
-#    print(g.test)
-#    print(request.endpoint)
-    """
-    my_cookie = request.cookies.get('my_cookie', False)
-    if my_cookie:
-        #imprime el valor de la cookie si existe
-        print(my_cookie)"""
     return render_template('index.html', urls=g.urls)
 
 
@@ -126,7 +108,6 @@ def logout():
     return redirect(url_for('index', urls=g.urls))
 
 
-
 @app.route('/create_user', methods=['GET', 'POST'])
 def create_user():
     user_form = forms.CreateUserForm(request.form)
@@ -154,18 +135,16 @@ def create_user():
 
 
 @app.route('/device/new', methods=['GET', 'POST'])
-@app.route('/device/new/<int:id>', methods=['GET', 'POST']) #no implementado
+@app.route('/device/new/<int:id>', methods=['GET', 'POST'])
 def new_device(id=None):
     if id is None:
         form = forms.CreateDevice(request.form)
     else:
         form = forms.UpdateDevice(request.form)
     form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
-#    form.assigned_to.choices = [(g.id, g.username) for g in User.query.order_by('username').all()]
     if request.method == 'GET' and id is not None:
         dev = Device.query.filter(Device.id == id).one_or_none()
         if dev is not None:
-            #pass
             form.name.data = dev.name
             form.location.data = dev.location
             form.serial_number.data = dev.serial_number
@@ -202,6 +181,7 @@ def new_device(id=None):
 
 @app.route('/device/view', methods=['GET'])
 @app.route('/device/view/<int:page>', methods=['GET'])
+@app.route('/device/view/<int:page>/<int:per_page>', methods=['GET'])
 def view_devices(page=1, per_page=2):
 #paginate(pagina inicial, cantidad de registros, pagina invalida)
     pages = int(round((Device.query.count() / per_page )+ 0.1))
@@ -209,7 +189,7 @@ def view_devices(page=1, per_page=2):
         Device.serial_number, Device.description,
         Location.location_name).order_by(Device.name).paginate(page, per_page, False)
     return render_template('view_devices.html', devs=dev_list,
-        activo=page, pages=pages, urls=g.urls)
+        activo=page, pages=pages, urls=g.urls, per_page=per_page)
 
 
 @app.route('/device/del/<int:id>')
@@ -227,9 +207,28 @@ def del_device(id):
     return redirect(url_for('new_device', urls=g.urls))
 
 
-@app.route('/device/assign/<int:id>')
-def assign_device(id):
-    pass
+@app.route('/device/assign', methods=['GET', 'POST'])
+def assign_device():
+    form = forms.AssignDevice(request.form)
+    if request.method == 'GET':
+        form.user.choices = [(g.id, g.username) for g in User.query.order_by('username').all()]
+        form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.assigned_to == None).order_by('name').all()]
+        return render_template('assign_dev.html', form=form, urls=g.urls)
+    elif request.method == 'POST':
+        dev = Device.query.filter(Device.id == form.device.data).one_or_none()
+        if dev is not None:
+            dev.assigned_to = form.user.data
+            try:
+                db.session.add(dev)
+                db.session.commit()
+                flash(('success', 'Dispositivo guardado exitosamente!.'))
+                return redirect(url_for('assign_device', urls=g.urls))
+            except Exception as e:
+                print(e)
+                flash(('danger', 'Lo sentimos algo salio mal!.'))
+        else:
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('assign_device', urls=g.urls))
 
 
 @app.route('/location/new', methods=['GET', 'POST'])
@@ -268,62 +267,20 @@ def del_location(id):
             db.session.delete(loc)
             db.session.commit()
             flash(('success', 'Locacion se borro exitosamente!.'))
-            #return render_template('index.html', urls=g.urls)
             return redirect(url_for('new_location', urls=g.urls))
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
-    #return render_template('index.html', urls=g.urls)
     return redirect(url_for('new_location', urls=g.urls))
 
-
-@app.route('/params')
-def params():
-    param = request.args.get('params1', 'no hay')
-    return 'El parametro es {}'.format(param)
-    #?params1=ALGO
-
-
-@app.route('/paramsplus/')
-@app.route('/paramsplus/<name>/')
-@app.route('/paramsplus/<name>/<int:num>/')
-def params_plus(name='Default', num=0):
-    return 'Bienvenido : {} {}'.format(name, num)
-#int:num hace que solo admita un numero como parametro
-
-
-@app.route('/user/<name>')
-def user(name="default"):
-    age = 32
-    lista = [1, 2, 3, 4, 5, ]
-    return render_template('user.html', nombre=name, edad=age, listar=lista)
-
-
-@app.route('/cookie')
-def cookie():
-    response = make_response(render_template('cookie.html'))
-    response.set_cookie('my_cookie', 'Emiliano')
-    return response
-
-
-@app.route('/excel', methods=['GET'])
-def return_excel():
-    return excel.make_response_from_array([[1, 2], [3, 4]], "csv")
-
-
-@app.route("/excel1", methods=['GET'])
-def doexport():
-    return excel.make_response_from_tables(db.session, [User, Comment],
-        file_type="csv", status=200, file_name='name')
-
-
-@app.route("/excel2", methods=['GET'])
+#ver pq esto no anda
+@app.route("/excel", methods=['GET'])
 def docustomexport():
-    comment_list = Comment.query.join(User).add_columns(User.username,
-        Comment.text, Comment.create_date).all()
-    column_names = ['username', 'text', 'create_date']
-    return excel.make_response_from_query_sets(comment_list,
-        column_names=column_names, file_type="xlsx", file_name='comments')
+    dev_list = Device.query.all()
+    column_names = ['id', 'name', 'serial_number', 'description', 'location',
+        'type_device', 'assigned_to', 'active']
+    return excel.make_response_from_query_sets(dev_list,
+        column_names=column_names, file_type="xlsx", file_name='devic')
 
 
 if __name__ == '__main__':
