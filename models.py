@@ -17,7 +17,8 @@ class User(db.Model):
     staff = db.Column(db.Boolean)
     #comments = db.relationship('Comment')
     location = db.Column(db.Integer, db.ForeignKey('locations.id'))
-    device_assigned = db.relationship('Device')
+#cambiar a divice_id
+    device_assigned = db.relationship('Device', back_populates='user')
 
     def __init__(self, username, email, password):
             self.username = username
@@ -64,8 +65,11 @@ class Device(db.Model):
     teamviwer = (db.String(9))
     location = db.Column(db.Integer, db.ForeignKey('locations.id'))
     type_device = db.column(db.String(50))
-    assigned_to = db.Column(db.Integer, db.ForeignKey('users.id'))
     active = db.Column(db.Boolean)
+#cambiar a user_id
+    assigned_to = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user = db.relationship('User', back_populates='device_assigned')
+
 
     def __init__(self, name, description, type_device, serial_number, teamviwer,
         location):

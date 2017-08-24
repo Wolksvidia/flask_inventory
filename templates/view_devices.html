@@ -6,15 +6,27 @@
 {% endblock %}
 {% block content %}
 <div class="container">
+	<div class="row">
+		<div class="col-md-2">
+			<label>Cantidad por pagina</label>
+			<select id="cant">
+				<option value="1" {% if per_page == 2 %}selected="selected"{% endif %}>2</option>
+				<option value="2" {% if per_page == 10 %}selected="selected"{% endif %}>10</option>
+				<option value="3" {% if per_page == 50 %}selected="selected"{% endif %}>50</option>
+			</select>
+		</div>
+		<div class="col-md-10"></div>
+	</div>
     <div class="row">
-		<div class="col-md-3"></div>
-		<div class="col-md-6">
+		<div class="col-md-12">
+		<hr>
 			{% if devs %}
-				<table class="table table-hover table-condensed">
+				<table class="table table-hover">
 					<thead>
 						<th>Nombre</th>
 						<th>Serial Number</th>
 						<th>Location</th>
+						<th>Assigned to</th>
 						<th>Description</th>
 						<th>Editar</th>
 						<th>Borrar</th>
@@ -22,17 +34,21 @@
 					<tbody>
 						{% for dev in devs.items %}
 							<tr>
-								<td>{{ dev.name }}</td>
-								<td>{{ dev.serial_number }}</td>
+								<td>{{ dev.Device.name }}</td>
+								<td>{{ dev.Device.serial_number }}</td>
 								<td>{{ dev.location_name}}</td>
-								<td>{{ dev.description }}</td>
+								<td>{% if dev.Device.user %}
+								<a href="{{ url_for("view_user", id=dev.Device.user.id) }}">
+								{{ dev.Device.user.username }}</a>
+								{% else %}Unassigned{% endif %}</td>
+								<td>{{ dev.Device.description }}</td>
 								<td>
-								<a href="{{ url_for("new_device", id=dev.id) }}">
+								<a href="{{ url_for("new_device", id=dev.Device.id) }}">
 										<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
 									</a>
 								</td>
 								<td>
-								<a href="{{ url_for("del_device", id=dev.id) }}">
+								<a href="{{ url_for("del_device", id=dev.Device.id) }}">
 										<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
 									</a>
 								</td>
@@ -41,14 +57,6 @@
 					</tbody>
 				</table>
 			{% endif %}
-		</div>
-		<div class="col-md-3">
-			<label>Cantidad por pagina</label>
-			<select id="cant">
-				<option value="1" {% if per_page == 2 %}selected="selected"{% endif %}>2</option>
-				<option value="2" {% if per_page == 10 %}selected="selected"{% endif %}>10</option>
-				<option value="3" {% if per_page == 50 %}selected="selected"{% endif %}>50</option>
-			</select>
 		</div>
 	</div>
 	<div class="row" id="row_absolute">

@@ -51,14 +51,18 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     
     <div class="jumbotron">
-	{% block header %}
       <div class="container">
-        <h1>Inventario</h1>
-        <p>Projecto de aplicacion para seguimiento de asignacion de equipos, construida en Flask/Python y Bootstrap.</p><!--
-        <p><a class="btn btn-primary btn-lg" href="" role="button">Learn more »</a></p>-->
-        {{ messages() }}
+		<div class="row">
+			<div class="col-md-12">
+				{% block header %}
+				<h1>Inventario</h1>
+				<p>Projecto de aplicacion para seguimiento de asignacion de equipos, construida en Flask/Python y Bootstrap.</p><!--
+				<p><a class="btn btn-primary btn-lg" href="" role="button">Learn more »</a></p>-->
+				{% endblock %}
+			</div>
+		</div>
+		{{ messages() }}
       </div>
-	  {% endblock %}
     </div>
     {% block content %}
     <div class="container">

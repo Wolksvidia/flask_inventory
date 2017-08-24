@@ -2,7 +2,7 @@
 from flask import Flask, abort
 from flask import request
 from flask import render_template
-from flask import make_response
+#from flask import make_response
 from flask import session, url_for, redirect, flash
 from flask_wtf.csrf import CSRFProtect
 #G permite persistir una viriable mientras dure el request
@@ -108,7 +108,7 @@ def logout():
     return redirect(url_for('index', urls=g.urls))
 
 
-@app.route('/create_user', methods=['GET', 'POST'])
+@app.route('/user/create_user', methods=['GET', 'POST'])
 def create_user():
     user_form = forms.CreateUserForm(request.form)
     if request.method == 'POST' and user_form.validate():
@@ -133,6 +133,14 @@ def create_user():
             flash(('danger', 'Lo sentimos algo salio mal!.'))
     return render_template('create_user.html', form=user_form, urls=g.urls)
 
+
+@app.route('/user/view/<int:id>')
+def view_user(id):
+    user = User.query.filter(User.id == id).one_or_none()
+    if user is not None:
+        return render_template('view_user.html', user=user, urls=g.urls)
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
+    return redirect(url_for('index', urls=g.urls))
 
 @app.route('/device/new', methods=['GET', 'POST'])
 @app.route('/device/new/<int:id>', methods=['GET', 'POST'])
@@ -179,18 +187,26 @@ def new_device(id=None):
     return render_template('new_device.html', form=form, urls=g.urls)
 
 
+#reparar la paginacion y la vista de dispositivos, pasar la paginacion al template
 @app.route('/device/view', methods=['GET'])
+@app.route('/device/view/<int:id>')
 @app.route('/device/view/<int:page>', methods=['GET'])
 @app.route('/device/view/<int:page>/<int:per_page>', methods=['GET'])
-def view_devices(page=1, per_page=2):
+def view_devices(id=None, page=1, per_page=2):
 #paginate(pagina inicial, cantidad de registros, pagina invalida)
-    pages = int(round((Device.query.count() / per_page )+ 0.1))
-    dev_list = Device.query.join(Location).add_columns(Device.id, Device.name,
-        Device.serial_number, Device.description,
-        Location.location_name).order_by(Device.name).paginate(page, per_page, False)
-    return render_template('view_devices.html', devs=dev_list,
-        activo=page, pages=pages, urls=g.urls, per_page=per_page)
-
+    if id is None:
+        pages = int(round((Device.query.count() / per_page )+ 0.1))
+        dev_list = Device.query.join(Location).add_columns(Location.location_name).order_by(Device.name).paginate(page, per_page, False)
+        return render_template('view_devices.html', devs=dev_list,
+            activo=page, pages=pages, urls=g.urls, per_page=per_page)
+    else:
+        try:
+            dev = Device.query.filter(Device.id == id).join(Location).add_columns(Location.location_name).one()
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Dispositivo no encontrado!.'))
+            return redirect(url_for('index', urls=g.urls))
+        return render_template('view_device.html', dev=dev, urls=g.urls)
 
 @app.route('/device/del/<int:id>')
 def del_device(id):
@@ -211,8 +227,11 @@ def del_device(id):
 def assign_device():
     form = forms.AssignDevice(request.form)
     if request.method == 'GET':
-        form.user.choices = [(g.id, g.username) for g in User.query.order_by('username').all()]
         form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.assigned_to == None).order_by('name').all()]
+        if len(form.device.choices) is 0:
+            flash(('danger', 'Lo sentimos no hay equipos disponibles para asignar!.'))
+            return redirect(url_for('view_devices', urls=g.urls))
+        form.user.choices = [(g.id, g.username) for g in User.query.order_by('username').all()]
         return render_template('assign_dev.html', form=form, urls=g.urls)
     elif request.method == 'POST':
         dev = Device.query.filter(Device.id == form.device.data).one_or_none()
