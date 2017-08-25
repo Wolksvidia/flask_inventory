@@ -24,9 +24,24 @@
 		<hr>
 		<h3>Dispositivos</h3>
 			{% if user.device_assigned %}
-				{% for dev in user.device_assigned %}
-					<h4><a href="{{ url_for('view_devices')}}/?params1={{dev.id}}">{{ dev.name }}</a></h4>
-				{% endfor %}
+				<div class="row">
+					<div class="col-md-6">
+					<table class="table table-hover">
+					<thead>
+						<th>Nombre</th>
+						<th>Quitar</th>
+					</thead>
+					<tbody>
+						{% for dev in user.device_assigned %}
+							<tr>
+								<td><a href="{{url_for('view_devices')}}?did={{dev.id}}">{{ dev.name }}</a></td>
+								<td><a href="{{url_for('unassign_device', did=dev.id)}}?uid={{user.id}}">Quitar</a></td>
+						{% endfor %}
+					</tbody>
+					</table>
+					</div>
+					<div class="col-md-6"></div>
+				</div>
 			{% else %}
 				<h4>No hay dispositivos asignados.</h4>
 			{% endif %}

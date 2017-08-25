@@ -58,13 +58,14 @@ def berfore_request():
     if 'username' not in session:
         g.urls = ({'url': 'index', 'name': 'Home'},
             {'url': 'login', 'name': 'Login'},
-            {'url': 'create_user', 'name': 'New User'})
+            {'url': 'new_user', 'name': 'New User'})
     else:
         g.urls = ({'url': 'index', 'name': 'Home'},
             {'url': 'new_location', 'name': 'Locations'},
             {'url': 'new_device', 'name': 'New Device'},
             {'url': 'assign_device', 'name': 'Assign Device'},
             {'url': 'view_devices', 'name': 'View Devices'},
+            {'url': 'view_user', 'name': 'View Users'},
             {'url': 'logout', 'name': 'Logout'})
 
 
@@ -108,39 +109,78 @@ def logout():
     return redirect(url_for('index', urls=g.urls))
 
 
-@app.route('/user/create_user', methods=['GET', 'POST'])
-def create_user():
-    user_form = forms.CreateUserForm(request.form)
-    if request.method == 'POST' and user_form.validate():
-        user = User(user_form.username.data,
-            user_form.email.data,
-            user_form.password.data)
-        try:
-            db.session.add(user)
-            db.session.commit()
-            flash(('success', 'Usuario creado correctamente.'))
+@app.route('/user/new', methods=['GET', 'POST'])
+@app.route('/user/new/<int:id>', methods=['GET', 'POST'])
+def new_user(id=None):
+    if id is None:
+        user_form = forms.CreateUserForm(request.form)
+        if request.method == 'POST' and user_form.validate():
+            user = User(user_form.username.data,
+                user_form.email.data,
+                user_form.password.data)
+            try:
+                db.session.add(user)
+                db.session.commit()
+                flash(('success', 'Usuario creado correctamente.'))
 
-            @copy_current_request_context
-            def send_message(username, email):
-                send_email(username, email)
+                @copy_current_request_context
+                def send_message(username, email):
+                    send_email(username, email)
 
-            sender = threading.Thread(name='mail_sender',
-                target=send_message, args=(user.username, user.email, ))
-            sender.start()
-            return redirect(url_for('login', urls=g.urls))
-        except Exception as e:
-            print(e)
-            flash(('danger', 'Lo sentimos algo salio mal!.'))
-    return render_template('create_user.html', form=user_form, urls=g.urls)
+                sender = threading.Thread(name='mail_sender',
+                    target=send_message, args=(user.username, user.email, ))
+                sender.start()
+                return redirect(url_for('login', urls=g.urls))
+            except Exception as e:
+                print(e)
+                flash(('danger', 'Lo sentimos algo salio mal!.'))
+                return redirect(url_for('index', urls=g.urls))
+        return render_template('create_user.html', form=user_form, urls=g.urls)
+    else:
+        flash(('danger', 'FUNCION NO IMPLEMENTADA!.'))
+        return redirect(url_for('index', urls=g.urls))
 
 
-@app.route('/user/view/<int:id>')
-def view_user(id):
+@app.route('/user/del/<int:id>')
+def del_user(id):
     user = User.query.filter(User.id == id).one_or_none()
     if user is not None:
-        return render_template('view_user.html', user=user, urls=g.urls)
+        if len(user.device_assigned) is 0:
+            try:
+                db.session.delete(user)
+                db.session.commit()
+                flash(('success', 'Usuario borrado exitosamente!.'))
+                return redirect(url_for('view_user', urls=g.urls))
+            except Exception as e:
+                print(e)
+                flash(('danger', 'Lo sentimos algo salio mal!.'))
+                return redirect(url_for('index', urls=g.urls))
+        else:
+            flash(('danger', 'Para eliminar, se debe quitar los dispositivos asignados!.'))
+            return redirect(url_for('view_user', uid=id, urls=g.urls))
     flash(('danger', 'Lo sentimos algo salio mal!.'))
-    return redirect(url_for('index', urls=g.urls))
+    return redirect(url_for('view_user', urls=g.urls))
+
+
+@app.route('/user/view', methods=['GET'])
+@app.route('/user/view/<int:page>', methods=['GET'])
+@app.route('/user/view/<int:page>/<int:per_page>', methods=['GET'])
+def view_user(page=1, per_page=2):
+    uid = request.args.get('uid', None)
+    if uid is None:
+        pages = int(round((Device.query.count() / per_page )+ 0.1))
+        users = User.query.join(Location).add_columns(Location.location_name).order_by(User.username).paginate(page, per_page, False)
+        return render_template('view_users.html', users=users,
+            activo=page, pages=pages, urls=g.urls, per_page=per_page)
+    else:
+        try:
+            user = User.query.filter(User.id == int(uid)).one()
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Usuario no encontrado!.'))
+            return redirect(url_for('index', urls=g.urls))
+        return render_template('view_user.html', user=user, urls=g.urls)
+
 
 @app.route('/device/new', methods=['GET', 'POST'])
 @app.route('/device/new/<int:id>', methods=['GET', 'POST'])
@@ -184,6 +224,7 @@ def new_device(id=None):
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('index', urls=g.urls))
     return render_template('new_device.html', form=form, urls=g.urls)
 
 
@@ -208,6 +249,7 @@ def view_devices(page=1, per_page=2):
             return redirect(url_for('index', urls=g.urls))
         return render_template('view_device.html', dev=dev, urls=g.urls)
 
+
 @app.route('/device/del/<int:id>')
 def del_device(id):
     dev = Device.query.filter(Device.id == id).one_or_none()
@@ -220,6 +262,7 @@ def del_device(id):
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('index', urls=g.urls))
     return redirect(url_for('new_device', urls=g.urls))
 
 
@@ -245,9 +288,29 @@ def assign_device():
             except Exception as e:
                 print(e)
                 flash(('danger', 'Lo sentimos algo salio mal!.'))
+                return redirect(url_for('index', urls=g.urls))
         else:
             flash(('danger', 'Lo sentimos algo salio mal!.'))
             return redirect(url_for('assign_device', urls=g.urls))
+
+
+@app.route('/device/unassign/<int:did>', methods=['GET'])
+def unassign_device(did):
+    uid = request.args.get('uid', None)
+    dev = Device.query.filter(Device.id == did).one_or_none()
+    if (dev and uid) is not None:
+        dev.assigned_to = None
+        try:
+            db.session.add(dev)
+            db.session.commit()
+            flash(('success', 'Dispositivo se borro exitosamente!.'))
+            return redirect(url_for('view_user', uid=uid, urls=g.urls))
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('index', urls=g.urls))
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
+    return redirect(url_for('view_user', uid=uid, urls=g.urls))
 
 
 @app.route('/location/new', methods=['GET', 'POST'])
