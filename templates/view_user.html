@@ -25,7 +25,7 @@
 		<h3>Dispositivos</h3>
 			{% if user.device_assigned %}
 				{% for dev in user.device_assigned %}
-					<h4><a href="{{ url_for("view_devices", id=dev.id)}}">{{ dev.name }}</a></h4>
+					<h4><a href="{{ url_for('view_devices')}}/?params1={{dev.id}}">{{ dev.name }}</a></h4>
 				{% endfor %}
 			{% else %}
 				<h4>No hay dispositivos asignados.</h4>

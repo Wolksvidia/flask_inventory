@@ -189,19 +189,19 @@ def new_device(id=None):
 
 #reparar la paginacion y la vista de dispositivos, pasar la paginacion al template
 @app.route('/device/view', methods=['GET'])
-@app.route('/device/view/<int:id>')
 @app.route('/device/view/<int:page>', methods=['GET'])
 @app.route('/device/view/<int:page>/<int:per_page>', methods=['GET'])
-def view_devices(id=None, page=1, per_page=2):
+def view_devices(page=1, per_page=2):
 #paginate(pagina inicial, cantidad de registros, pagina invalida)
-    if id is None:
+    did = request.args.get('did', None)
+    if did is None:
         pages = int(round((Device.query.count() / per_page )+ 0.1))
         dev_list = Device.query.join(Location).add_columns(Location.location_name).order_by(Device.name).paginate(page, per_page, False)
         return render_template('view_devices.html', devs=dev_list,
             activo=page, pages=pages, urls=g.urls, per_page=per_page)
     else:
         try:
-            dev = Device.query.filter(Device.id == id).join(Location).add_columns(Location.location_name).one()
+            dev = Device.query.filter(Device.id == int(did)).join(Location).add_columns(Location.location_name).one()
         except Exception as e:
             print(e)
             flash(('danger', 'Dispositivo no encontrado!.'))
