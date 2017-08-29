@@ -1,25 +1,35 @@
 {% extends 'base.html' %}
 {% from '_macro.html' import render_pagination %}
-{% block title %}Ver Dispositivos{% endblock %}
+{% block title %}Device profile{% endblock %}
 {% block header %}
-<h2>Device {{ dev.Device.name }}</h2>
+<h2>{{ dev.Device.name }}</h2>
 {% endblock %}
 {% block content %}
 <div class="container">
 	<div class="row">
-		<div class="col-md-6">
-			<h4>{{dev.Device.name}}</h4>
-			<h4>{{dev.Device.descriptin}}</h4>
-		</div>
-		<div class="col-md-6">
-				<h4>{{dev.location_name}}</h4>
+		<div class="col-md-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">Datos</div>
+				<div class="panel-body">
+					<div class="col-md-6">
+						<h4>Nombre: {{dev.Device.name}}</h4>
+						<h4>Serial Number: {{dev.Device.serial_number}}</h4>
+					</div>
+					<div class="col-md-6">
+						<h4>Location: {{dev.location_name}}</h4>
+					</div>
+				</div>
+			</div>	
 		</div>
 	</div>
     <div class="row">
 		<div class="col-md-12">
-		<hr>
-		<h3>Descriptin:</h3>
-			<p>{{ dev.Device.description }}</p>
+			<div class="panel panel-default">
+				<div class="panel-heading">Descriptin</div>
+				<div class="panel-body">
+					<p>{{ dev.Device.description }}</p>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

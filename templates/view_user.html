@@ -1,50 +1,60 @@
 {% extends 'base.html' %}
 {% from '_macro.html' import render_pagination %}
-{% block title %}Ver Dispositivos{% endblock %}
+{% block title %}User Profile{% endblock %}
 {% block header %}
-<h2>Profile {{ user.username }}</h2>
+<h2>{{ user.username }}</h2>
 {% endblock %}
 {% block content %}
 <div class="container">
 	<div class="row">
-		<div class="col-md-6">
-			<h4>{{user.username}}</h4>
-			<h4>{{user.email}}</h4>
-		</div>
-		<div class="col-md-6">
-			{% if user.staff %}
-				<h4>Is Staff</h4>
-			{% else %}
-				<h4>Normal User</h4>
-			{% endif %}
+		<div class="col-md-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">Datos Personales</div>
+				<div class="panel-body">
+					<div class="col-md-6">
+						<h4>Nombre: {{user.username}}</h4>
+						<h4>E-mail: {{user.email}}</h4>
+					</div>
+					<div class="col-md-6">
+						{% if user.staff %}
+							<h4>Is Staff</h4>
+						{% else %}
+							<h4>Normal User</h4>
+						{% endif %}
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
     <div class="row">
 		<div class="col-md-12">
-		<hr>
-		<h3>Dispositivos</h3>
-			{% if user.device_assigned %}
-				<div class="row">
-					<div class="col-md-6">
-					<table class="table table-hover">
-					<thead>
-						<th>Nombre</th>
-						<th>Quitar</th>
-					</thead>
-					<tbody>
-						{% for dev in user.device_assigned %}
-							<tr>
-								<td><a href="{{url_for('view_devices')}}?did={{dev.id}}">{{ dev.name }}</a></td>
-								<td><a href="{{url_for('unassign_device', did=dev.id)}}?uid={{user.id}}">Quitar</a></td>
-						{% endfor %}
-					</tbody>
-					</table>
-					</div>
-					<div class="col-md-6"></div>
+			<div class="panel panel-default">
+				<div class="panel-heading">Dispositivos Asignados</div>
+				<div class="panel-body">
+					{% if user.device_assigned %}
+						<div class="row">
+							<div class="col-md-6">
+							<table class="table table-hover">
+							<thead>
+								<th>Nombre</th>
+								<th>Quitar</th>
+							</thead>
+							<tbody>
+								{% for dev in user.device_assigned %}
+									<tr>
+										<td><a href="{{url_for('view_devices', did=dev.id)}}">{{ dev.name }}</a></td>
+										<td><a href="{{url_for('unassign_device', did=dev.id)}}?uid={{user.id}}">Quitar</a></td>
+								{% endfor %}
+							</tbody>
+							</table>
+							</div>
+							<div class="col-md-6"></div>
+						</div>
+					{% else %}
+						<h4>No hay dispositivos asignados.</h4>
+					{% endif %}
 				</div>
-			{% else %}
-				<h4>No hay dispositivos asignados.</h4>
-			{% endif %}
+			</div>
 		</div>
 	</div>
 </div>

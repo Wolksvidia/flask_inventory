@@ -6,7 +6,7 @@ from flask import render_template
 from flask import session, url_for, redirect, flash
 from flask_wtf.csrf import CSRFProtect
 #G permite persistir una viriable mientras dure el request
-from flask import g, copy_current_request_context
+from flask import copy_current_request_context
 from flask_mail import Mail, Message
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
@@ -56,11 +56,11 @@ def page_not_found(error):
 @app.before_request
 def berfore_request():
     if 'username' not in session:
-        g.urls = ({'url': 'index', 'name': 'Home'},
+        session['urls'] = ({'url': 'index', 'name': 'Home'},
             {'url': 'login', 'name': 'Login'},
             {'url': 'new_user', 'name': 'New User'})
     else:
-        g.urls = ({'url': 'index', 'name': 'Home'},
+        session['urls'] = ({'url': 'index', 'name': 'Home'},
             {'url': 'new_location', 'name': 'Locations'},
             {'url': 'new_device', 'name': 'New Device'},
             {'url': 'assign_device', 'name': 'Assign Device'},
@@ -80,7 +80,7 @@ def after_request(response):
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html', urls=g.urls)
+    return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -94,10 +94,10 @@ def login():
             flash(('primary', 'Bienvenido {}.'.format(username)))
             session['username'] = username
             session['user_id'] = user.id
-            return redirect(url_for('index', urls=g.urls))
+            return redirect(url_for('index'))
         else:
             flash(('danger', 'Contraseña o usuario incorrectos.'))
-    return render_template('login.html', form=login_form, urls=g.urls)
+    return render_template('login.html', form=login_form)
 
 
 @app.route('/logout')
@@ -106,7 +106,7 @@ def logout():
         session.clear()
     #url_for devuelve la ruta de un recurso, en este caso el de la funcion login
     flash(('info', 'Vuelva pronto!.'))
-    return redirect(url_for('index', urls=g.urls))
+    return redirect(url_for('index'))
 
 
 @app.route('/user/new', methods=['GET', 'POST'])
@@ -130,15 +130,15 @@ def new_user(id=None):
                 sender = threading.Thread(name='mail_sender',
                     target=send_message, args=(user.username, user.email, ))
                 sender.start()
-                return redirect(url_for('login', urls=g.urls))
+                return redirect(url_for('login'))
             except Exception as e:
                 print(e)
                 flash(('danger', 'Lo sentimos algo salio mal!.'))
-                return redirect(url_for('index', urls=g.urls))
-        return render_template('create_user.html', form=user_form, urls=g.urls)
+                return redirect(url_for('index'))
+        return render_template('create_user.html', form=user_form)
     else:
         flash(('danger', 'FUNCION NO IMPLEMENTADA!.'))
-        return redirect(url_for('index', urls=g.urls))
+        return redirect(url_for('index'))
 
 
 @app.route('/user/del/<int:id>')
@@ -150,36 +150,52 @@ def del_user(id):
                 db.session.delete(user)
                 db.session.commit()
                 flash(('success', 'Usuario borrado exitosamente!.'))
-                return redirect(url_for('view_user', urls=g.urls))
+                return redirect(url_for('view_user'))
             except Exception as e:
                 print(e)
                 flash(('danger', 'Lo sentimos algo salio mal!.'))
-                return redirect(url_for('index', urls=g.urls))
+                return redirect(url_for('index'))
         else:
             flash(('danger', 'Para eliminar, se debe quitar los dispositivos asignados!.'))
-            return redirect(url_for('view_user', uid=id, urls=g.urls))
+            return redirect(url_for('view_user', uid=id))
     flash(('danger', 'Lo sentimos algo salio mal!.'))
-    return redirect(url_for('view_user', urls=g.urls))
+    return redirect(url_for('view_user'))
 
 
-@app.route('/user/view', methods=['GET'])
-@app.route('/user/view/<int:page>', methods=['GET'])
-@app.route('/user/view/<int:page>/<int:per_page>', methods=['GET'])
-def view_user(page=1, per_page=2):
+@app.route('/user/view_old', methods=['GET'])
+@app.route('/user/view_old/<int:page>', methods=['GET'])
+@app.route('/user/view_old/<int:page>/<int:per_page>', methods=['GET'])
+def view_user_old(page=1, per_page=2):
     uid = request.args.get('uid', None)
     if uid is None:
         pages = int(round((Device.query.count() / per_page )+ 0.1))
         users = User.query.join(Location).add_columns(Location.location_name).order_by(User.username).paginate(page, per_page, False)
-        return render_template('view_users.html', users=users,
-            activo=page, pages=pages, urls=g.urls, per_page=per_page)
+        return render_template('view_users_old.html', users=users,
+            activo=page, pages=pages, per_page=per_page)
     else:
         try:
             user = User.query.filter(User.id == int(uid)).one()
         except Exception as e:
             print(e)
             flash(('danger', 'Usuario no encontrado!.'))
-            return redirect(url_for('index', urls=g.urls))
-        return render_template('view_user.html', user=user, urls=g.urls)
+            return redirect(url_for('index'))
+        return render_template('view_user.html', user=user)
+
+
+@app.route('/user/view', methods=['GET'])
+@app.route('/user/view/<int:uid>', methods=['GET'])
+def view_user(uid=None):
+    if uid is None:
+        users = User.query.join(Location).add_columns(Location.location_name).order_by(User.username).all()
+        return render_template('view_users.html', users=users)
+    else:
+        try:
+            user = User.query.filter(User.id == uid).one()
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Usuario no encontrado!.'))
+            return redirect(url_for('index'))
+        return render_template('view_user.html', user=user)
 
 
 @app.route('/device/new', methods=['GET', 'POST'])
@@ -220,34 +236,51 @@ def new_device(id=None):
             db.session.add(dev)
             db.session.commit()
             flash(('success', 'Dispositivo guardado exitosamente!.'))
-            return redirect(url_for('new_device', urls=g.urls))
+            return redirect(url_for('new_device'))
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
-            return redirect(url_for('index', urls=g.urls))
-    return render_template('new_device.html', form=form, urls=g.urls)
+            return redirect(url_for('index'))
+    return render_template('new_device.html', form=form)
 
 
-#reparar la paginacion y la vista de dispositivos, pasar la paginacion al template
-@app.route('/device/view', methods=['GET'])
-@app.route('/device/view/<int:page>', methods=['GET'])
-@app.route('/device/view/<int:page>/<int:per_page>', methods=['GET'])
-def view_devices(page=1, per_page=2):
+#La paginacion se hace mediante el metodo de orm pagination, lo que resulta en
+#consultas a la db cada vez que se cambia de pagina
+@app.route('/device/view_old', methods=['GET'])
+@app.route('/device/view_old/<int:page>', methods=['GET'])
+@app.route('/device/view_old/<int:page>/<int:per_page>', methods=['GET'])
+def view_devices_old(page=1, per_page=2):
 #paginate(pagina inicial, cantidad de registros, pagina invalida)
     did = request.args.get('did', None)
     if did is None:
         pages = int(round((Device.query.count() / per_page )+ 0.1))
         dev_list = Device.query.join(Location).add_columns(Location.location_name).order_by(Device.name).paginate(page, per_page, False)
-        return render_template('view_devices.html', devs=dev_list,
-            activo=page, pages=pages, urls=g.urls, per_page=per_page)
+        return render_template('view_devices_old.html', devs=dev_list,
+            activo=page, pages=pages, per_page=per_page)
     else:
         try:
             dev = Device.query.filter(Device.id == int(did)).join(Location).add_columns(Location.location_name).one()
         except Exception as e:
             print(e)
             flash(('danger', 'Dispositivo no encontrado!.'))
-            return redirect(url_for('index', urls=g.urls))
-        return render_template('view_device.html', dev=dev, urls=g.urls)
+            return redirect(url_for('index'))
+        return render_template('view_device.html', dev=dev)
+
+
+@app.route('/device/view', methods=['GET'])
+@app.route('/device/view/<int:did>', methods=['GET'])
+def view_devices(did=None):
+    if did is None:
+        devs = Device.query.order_by(Device.name).outerjoin(Location).add_columns(Location.location_name).all()
+        return render_template('view_devices.html', devs=devs)
+    else:
+        try:
+            dev = Device.query.filter(Device.id == did).join(Location).add_columns(Location.location_name).one()
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Dispositivo no encontrado!.'))
+            return redirect(url_for('index'))
+        return render_template('view_device.html', dev=dev)
 
 
 @app.route('/device/del/<int:id>')
@@ -258,12 +291,12 @@ def del_device(id):
             db.session.delete(dev)
             db.session.commit()
             flash(('success', 'Dispositivo se borro exitosamente!.'))
-            return redirect(url_for('new_device', urls=g.urls))
+            return redirect(url_for('new_device'))
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
-            return redirect(url_for('index', urls=g.urls))
-    return redirect(url_for('new_device', urls=g.urls))
+            return redirect(url_for('index'))
+    return redirect(url_for('new_device'))
 
 
 @app.route('/device/assign', methods=['GET', 'POST'])
@@ -273,9 +306,9 @@ def assign_device():
         form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.assigned_to == None).order_by('name').all()]
         if len(form.device.choices) is 0:
             flash(('danger', 'Lo sentimos no hay equipos disponibles para asignar!.'))
-            return redirect(url_for('view_devices', urls=g.urls))
+            return redirect(url_for('view_devices'))
         form.user.choices = [(g.id, g.username) for g in User.query.order_by('username').all()]
-        return render_template('assign_dev.html', form=form, urls=g.urls)
+        return render_template('assign_dev.html', form=form)
     elif request.method == 'POST':
         dev = Device.query.filter(Device.id == form.device.data).one_or_none()
         if dev is not None:
@@ -284,14 +317,14 @@ def assign_device():
                 db.session.add(dev)
                 db.session.commit()
                 flash(('success', 'Dispositivo guardado exitosamente!.'))
-                return redirect(url_for('assign_device', urls=g.urls))
+                return redirect(url_for('assign_device'))
             except Exception as e:
                 print(e)
                 flash(('danger', 'Lo sentimos algo salio mal!.'))
-                return redirect(url_for('index', urls=g.urls))
+                return redirect(url_for('index'))
         else:
             flash(('danger', 'Lo sentimos algo salio mal!.'))
-            return redirect(url_for('assign_device', urls=g.urls))
+            return redirect(url_for('assign_device'))
 
 
 @app.route('/device/unassign/<int:did>', methods=['GET'])
@@ -304,13 +337,13 @@ def unassign_device(did):
             db.session.add(dev)
             db.session.commit()
             flash(('success', 'Dispositivo se borro exitosamente!.'))
-            return redirect(url_for('view_user', uid=uid, urls=g.urls))
+            return redirect(url_for('view_user', uid=uid))
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
-            return redirect(url_for('index', urls=g.urls))
+            return redirect(url_for('index'))
     flash(('danger', 'Lo sentimos algo salio mal!.'))
-    return redirect(url_for('view_user', uid=uid, urls=g.urls))
+    return redirect(url_for('view_user', uid=uid))
 
 
 @app.route('/location/new', methods=['GET', 'POST'])
@@ -334,11 +367,11 @@ def new_location(id=None):
             db.session.add(loc)
             db.session.commit()
             flash(('success', 'Locacion guardado exitosamente!.'))
-            return redirect(url_for('new_location', urls=g.urls))
+            return redirect(url_for('new_location'))
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
-    return render_template('new_location.html',form=form, urls=g.urls, locations=locations)
+    return render_template('new_location.html',form=form, locations=locations)
 
 
 @app.route('/location/del/<int:id>')
@@ -349,11 +382,11 @@ def del_location(id):
             db.session.delete(loc)
             db.session.commit()
             flash(('success', 'Locacion se borro exitosamente!.'))
-            return redirect(url_for('new_location', urls=g.urls))
+            return redirect(url_for('new_location'))
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
-    return redirect(url_for('new_location', urls=g.urls))
+    return redirect(url_for('new_location'))
 
 #ver pq esto no anda
 @app.route("/excel", methods=['GET'])

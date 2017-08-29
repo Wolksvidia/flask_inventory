@@ -13,16 +13,19 @@
     <title>{% block title %}Titulo{% endblock %}</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
 
-    <!-- Custom styles for this template -->
-    <link href="{{ url_for('static', filename='css/jumbotron.css') }}" rel="stylesheet">
+    <!-- Custom styles for this template 
+	<link href="{{ url_for('static', filename='css/jumbotron.css') }}" rel="stylesheet">
+	-->
+	<link href="{{ url_for('static', filename='css/sticky-footer-navbar.css') }}" rel="stylesheet">
+    
 	{% block links %}{% endblock %}
   </head>
 
   <body>
 
-    <nav class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-default navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -38,64 +41,33 @@
                <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-menu-hamburger"></span> Menu</a>
                 <ul class="dropdown-menu">
-                  {{ render_li_link(urls) }}
+                  {{ render_li_link(session['urls']) }}
                 </ul>
               </li>
             </ul>
             
           </div>
-        <!--/.navbar-collapse -->
       </div>
     </nav>
-
-    <!-- Main jumbotron for a primary marketing message or call to action -->
-    
-    <div class="jumbotron">
-      <div class="container">
-		<div class="row">
-			<div class="col-md-12">
-				{% block header %}
-				<h1>Inventario</h1>
-				<p>Projecto de aplicacion para seguimiento de asignacion de equipos, construida en Flask/Python y Bootstrap.</p><!--
-				<p><a class="btn btn-primary btn-lg" href="" role="button">Learn more »</a></p>-->
-				{% endblock %}
-			</div>
+    <!-- jumbotron -->
+	<div class="container">
+		<div class="page-header">
+			{% block header %}
+			{% endblock %}
+			{{ messages() }}
 		</div>
-		{{ messages() }}
-      </div>
     </div>
+	<!-- content -->
     {% block content %}
-    <div class="container">
-      <!-- Example row of columns -->
-      <div class="row">
-        
-      </div>
-	</div>
 	{% endblock %} 
-	 
-	
-		<footer id="footer">
-		{% block footer %}
-		<div class="container"> 
-		<div class="row">
-		<div class="col-md-12">
-		<div class="social">
-            <ul>
-				<li><p>© 2017 Wolks Web Services.</p></li>
-                <li><a href="#"><i class="fa fa-lg fa-facebook"></i></a></li>
-                <li><a href="#"><i class="fa fa-lg fa-github"></i></a></li>
-                <li><a href="#"><i class="fa fa-lg fa-linkedin"></i></a></li>
-                <li><a href="#"><i class="fa fa-lg fa-phone"></i></a></li>
-                <li><a href="#"><i class="fa fa-lg fa-envelope-o"></i></a></li>
-            </ul>
-        </div>
-				</div>
-		</div>
-		</div>
-		{% endblock %}
-		</footer>
-
-		 <!-- /container -->
+	<!-- footer -->	
+	<footer class="footer">
+	{% block footer %}
+	<div class="container"> 
+		<p class="text-muted">© 2017 Wolks Web Services.</p>
+	</div>
+	{% endblock %}
+	</footer>
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->

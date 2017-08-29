@@ -1,39 +1,9 @@
 {% extends 'base.html' %}
 {% from '_macro.html' import render_fields %}
 {% block title %}Index{% endblock %}
-{% block links %}
-<style>
-      /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
-      #map {
-        height: 1000%;
-      }
-      /* Optional: Makes the sample page fill the window. */
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
+{% block header %}
+	<h1>Inventario</h1>
+	<p>Projecto de aplicacion para seguimiento de asignacion de equipos, construida en Flask/Python y Bootstrap.</p>
 {% endblock %}
 {% block content %}
-<div class="container">
-	<div class="row">
-		<div class="col-md-12">
-			<h1>Index.</h1>
-			<div id="map" style="height: 200px;"></div>
-	</div>
-</div>
-
-<script>
-      var map;
-      function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: -34.397, lng: 150.644},
-          zoom: 5
-        });
-      }
-    </script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEb71lJm4iwGjoiLfyGuDATYHwKShC_R0&callback=initMap"></script>
-</div>
 {% endblock %}
