@@ -112,7 +112,7 @@ class UpdateDevice(FlaskForm):
     description = TextAreaField('Description')
     teamviwer = StringField('Id Teamviwer')
     location = SelectField('Location', coerce=int)
-    type_device = SelectField('Device Type', default='', choices=[('dk', 'Deskltop'), ('lp', 'Laptop')])
+    type_device = SelectField('Device Type', default='', choices=[('dk', 'Desktop'), ('lp', 'Laptop')])
 
 
 class CreateLocation(FlaskForm):

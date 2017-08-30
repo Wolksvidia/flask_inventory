@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macro.html' import render_pagination %}
+{% from '_macro.html' import render_fields %}
 {% block title %}Device profile{% endblock %}
 {% block header %}
 <h2>{{ dev.Device.name }}</h2>
@@ -14,9 +14,13 @@
 					<div class="col-md-6">
 						<h4>Nombre: {{dev.Device.name}}</h4>
 						<h4>Serial Number: {{dev.Device.serial_number}}</h4>
+						<h4>Type: {{dev.Device.resolv_type()}}</h4>
 					</div>
 					<div class="col-md-6">
 						<h4>Location: {{dev.location_name}}</h4>
+						<h4>{% if dev.Device.user %}
+						<a href="{{url_for("view_user", uid=dev.Device.user.id)}}">{{ dev.Device.user.username }}</a>
+						{% else %}Unassigned{% endif %}</h4>
 					</div>
 				</div>
 			</div>	
@@ -31,6 +35,35 @@
 				</div>
 			</div>
 		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">Comentarios</div>
+				<div class="panel-body">
+					<p>proximamente...</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">Agregar Comentario</div>
+				<div class="panel-body">
+					<form method='POST'>
+						{{ form.csrf_token }}
+						<div class="form-group">
+						{{ render_fields(form.comment, class="form-control") }}
+						</div>
+						<button type="submit" class="btn btn-default">Submit</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12"><br/><br/></div>
 	</div>
 </div>
 {% endblock %}

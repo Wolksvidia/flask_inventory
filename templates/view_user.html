@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% from '_macro.html' import render_pagination %}
 {% block title %}User Profile{% endblock %}
 {% block header %}
 <h2>{{ user.username }}</h2>
@@ -31,7 +30,7 @@
 			<div class="panel panel-default">
 				<div class="panel-heading">Dispositivos Asignados</div>
 				<div class="panel-body">
-					{% if user.device_assigned %}
+					{% if user.device_id %}
 						<div class="row">
 							<div class="col-md-6">
 							<table class="table table-hover">
@@ -40,7 +39,7 @@
 								<th>Quitar</th>
 							</thead>
 							<tbody>
-								{% for dev in user.device_assigned %}
+								{% for dev in user.device_id %}
 									<tr>
 										<td><a href="{{url_for('view_devices', did=dev.id)}}">{{ dev.name }}</a></td>
 										<td><a href="{{url_for('unassign_device', did=dev.id)}}?uid={{user.id}}">Quitar</a></td>

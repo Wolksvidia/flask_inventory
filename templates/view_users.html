@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% from '_macro.html' import render_pagination %}
 {% block title %}Usuarios{% endblock %}
 {% block links %}
 <link href="{{ url_for('static', filename='css/dataTables.jqueryui.min.css') }}" rel="stylesheet">
@@ -69,7 +68,15 @@
 <script>
 	$(document).ready(function(){
 	$('#tableta').DataTable( {
-		paging: true
+		paging: true,
+		lengthChange: true,
+		searching: true,
+		ordering: true,
+		stateSave: true,
+		autoWidth: true,
+		scrollx: true,
+		scrollY: 430,
+		scrollCollapse: true,
 	} );
 } );
 </script>

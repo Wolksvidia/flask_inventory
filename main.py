@@ -91,7 +91,7 @@ def login():
         password = login_form.password.data
         user = User.query.filter_by(username=username).first()
         if user is not None and user.verify_password(password):
-            flash(('primary', 'Bienvenido {}.'.format(username)))
+            flash(('info', 'Bienvenido {}.'.format(username)))
             session['username'] = username
             session['user_id'] = user.id
             return redirect(url_for('index'))
@@ -268,7 +268,7 @@ def view_devices_old(page=1, per_page=2):
 
 
 @app.route('/device/view', methods=['GET'])
-@app.route('/device/view/<int:did>', methods=['GET'])
+@app.route('/device/view/<int:did>', methods=['GET', 'POST'])
 def view_devices(did=None):
     if did is None:
         devs = Device.query.order_by(Device.name).outerjoin(Location).add_columns(Location.location_name).all()
@@ -280,7 +280,22 @@ def view_devices(did=None):
             print(e)
             flash(('danger', 'Dispositivo no encontrado!.'))
             return redirect(url_for('index'))
-        return render_template('view_device.html', dev=dev)
+        form = forms.CommentForm(request.form)
+        if request.method == 'POST' and form.validate():
+            pass
+            """user_id = session['user_id']
+            device_id = dev.id
+            comment = Comment(user_id=user_id, device_id=device_id,
+                text=form.comment.data)
+            try:
+                db.session.add(comment)
+                db.session.commit()
+                flash(('success', 'Comentario guardado exitosamente!.'))
+                return redirect(url_for('view_divices', did=dev.id, dev=dev, form=form))
+            except Exception as e:
+                print(e)
+                flash(('danger', 'Lo sentimos algo salio mal!.'))"""
+        return render_template('view_device.html', dev=dev, form=form)
 
 
 @app.route('/device/del/<int:id>')
@@ -303,7 +318,7 @@ def del_device(id):
 def assign_device():
     form = forms.AssignDevice(request.form)
     if request.method == 'GET':
-        form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.assigned_to == None).order_by('name').all()]
+        form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.user_id == None).order_by('name').all()]
         if len(form.device.choices) is 0:
             flash(('danger', 'Lo sentimos no hay equipos disponibles para asignar!.'))
             return redirect(url_for('view_devices'))
@@ -312,7 +327,7 @@ def assign_device():
     elif request.method == 'POST':
         dev = Device.query.filter(Device.id == form.device.data).one_or_none()
         if dev is not None:
-            dev.assigned_to = form.user.data
+            dev.user_id = form.user.data
             try:
                 db.session.add(dev)
                 db.session.commit()
@@ -332,7 +347,7 @@ def unassign_device(did):
     uid = request.args.get('uid', None)
     dev = Device.query.filter(Device.id == did).one_or_none()
     if (dev and uid) is not None:
-        dev.assigned_to = None
+        dev.user_id = None
         try:
             db.session.add(dev)
             db.session.commit()

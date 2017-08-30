@@ -67,7 +67,15 @@
 <script>
 	$(document).ready(function(){
 	$('#tableta').DataTable( {
-		paging: true
+		paging: true,
+		lengthChange: true,
+		searching: true,
+		ordering: true,
+		stateSave: true,
+		autoWidth: true,
+		scrollx: true,
+		scrollY: 350,
+		scrollCollapse: true,
 	} );
 } );
 </script>
