@@ -12,7 +12,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from config import DevelopmentConfig
 from models import db, User, Comment, Location, Device
-#from helpers import date_format
+from helpers import date_format
 import flask_excel as excel
 import threading
 import forms
@@ -45,6 +45,13 @@ def send_email(username, email):
 
 with app.app_context():
     db.create_all()
+    user = User(username='admin', email='admin@example.com',
+        password='Admin2017', staff=True)
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        print(e)
 
 
 @app.errorhandler(404)
@@ -57,8 +64,7 @@ def page_not_found(error):
 def berfore_request():
     if 'username' not in session:
         session['urls'] = ({'url': 'index', 'name': 'Home'},
-            {'url': 'login', 'name': 'Login'},
-            {'url': 'new_user', 'name': 'New User'})
+            {'url': 'login', 'name': 'Login'})
     else:
         session['urls'] = ({'url': 'index', 'name': 'Home'},
             {'url': 'new_location', 'name': 'Locations'},
@@ -66,6 +72,7 @@ def berfore_request():
             {'url': 'assign_device', 'name': 'Assign Device'},
             {'url': 'view_devices', 'name': 'View Devices'},
             {'url': 'view_user', 'name': 'View Users'},
+            {'url': 'new_user', 'name': 'New User'},
             {'url': 'logout', 'name': 'Logout'})
 
 
@@ -90,7 +97,7 @@ def login():
         username = login_form.username.data
         password = login_form.password.data
         user = User.query.filter_by(username=username).first()
-        if user is not None and user.verify_password(password):
+        if user is not None and user.verify_password(password) and user.staff is True:
             flash(('info', 'Bienvenido {}.'.format(username)))
             session['username'] = username
             session['user_id'] = user.id
@@ -213,8 +220,11 @@ def new_device(id=None):
             form.location.data = dev.location
             form.serial_number.data = dev.serial_number
             form.description.data = dev.description
-            #form.teamviwer.data = dev.teamviwer
-            #form.type_device = dev.type_device
+            form.teamviwer.data = dev.teamviwer
+            form.type_device.data = dev.type_device
+            form.model.data = dev.model
+            form.marca.data = dev.marca
+            form.system.data = dev.system
         else:
             abort(404)
     if request.method == 'POST' and form.validate():
@@ -229,9 +239,13 @@ def new_device(id=None):
             dev.type_device = form.type_device.data
             dev.location = form.location.data"""
         else:
-            dev = Device(name=form.name.data, serial_number=form.serial_number.data,
-                description=form.description.data, teamviwer=form.teamviwer.data,
-                type_device=form.type_device.data, location=form.location.data)
+            dev = Device(name=form.name.data,
+                serial_number=form.serial_number.data,
+                description=form.description.data,
+                teamviwer=form.teamviwer.data,
+                type_device=form.type_device.data, location=form.location.data,
+                marca=form.marca.data, model=form.model.data,
+                system=form.system.data)
         try:
             db.session.add(dev)
             db.session.commit()
@@ -268,7 +282,7 @@ def view_devices_old(page=1, per_page=2):
 
 
 @app.route('/device/view', methods=['GET'])
-@app.route('/device/view/<int:did>', methods=['GET', 'POST'])
+@app.route('/device/view/<int:did>', methods=['GET'])
 def view_devices(did=None):
     if did is None:
         devs = Device.query.order_by(Device.name).outerjoin(Location).add_columns(Location.location_name).all()
@@ -281,21 +295,7 @@ def view_devices(did=None):
             flash(('danger', 'Dispositivo no encontrado!.'))
             return redirect(url_for('index'))
         form = forms.CommentForm(request.form)
-        if request.method == 'POST' and form.validate():
-            pass
-            """user_id = session['user_id']
-            device_id = dev.id
-            comment = Comment(user_id=user_id, device_id=device_id,
-                text=form.comment.data)
-            try:
-                db.session.add(comment)
-                db.session.commit()
-                flash(('success', 'Comentario guardado exitosamente!.'))
-                return redirect(url_for('view_divices', did=dev.id, dev=dev, form=form))
-            except Exception as e:
-                print(e)
-                flash(('danger', 'Lo sentimos algo salio mal!.'))"""
-        return render_template('view_device.html', dev=dev, form=form)
+        return render_template('view_device.html', dev=dev, form=form, date_format=date_format)
 
 
 @app.route('/device/del/<int:id>')
@@ -311,6 +311,7 @@ def del_device(id):
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
             return redirect(url_for('index'))
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
     return redirect(url_for('new_device'))
 
 
@@ -359,6 +360,41 @@ def unassign_device(did):
             return redirect(url_for('index'))
     flash(('danger', 'Lo sentimos algo salio mal!.'))
     return redirect(url_for('view_user', uid=uid))
+
+
+@app.route('/device/<int:did>/comment/add', methods=['POST'])
+def add_comment(did):
+    form = forms.CommentForm(request.form)
+    if request.method == 'POST' and form.validate():
+        comment = Comment(session['user_id'], did, form.comment.data)
+        try:
+            db.session.add(comment)
+            db.session.commit()
+            flash(('success', 'Comentario guardado exitosamente!.'))
+            return redirect(url_for('view_devices', did=did))
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('view_devices', did=did))
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
+    return redirect(url_for('view_devices', did=did))
+
+
+@app.route('/device/<int:did>/comment/del/<int:cid>', methods=['GET'])
+def del_comment(did, cid):
+    cm = Comment.query.filter(Comment.id == cid).one_or_none()
+    if cm is not None:
+        try:
+            db.session.delete(cm)
+            db.session.commit()
+            flash(('success', 'El comentario se borro exitosamente!.'))
+            return redirect(url_for('view_devices', did=did))
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('view_devices', did=did))
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
+    return redirect(url_for('view_devices', did=did))
 
 
 @app.route('/location/new', methods=['GET', 'POST'])

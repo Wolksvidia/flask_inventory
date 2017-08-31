@@ -15,18 +15,24 @@
 					<table class="table table-hover" id="tableta">
 						<thead>
 							<th>Nombre</th>
-							<th>Serial Number</th>
+							<th>Marca</th>
+							<th>Modelo</th>
+							<th>Sistema Operativo</th>
+							<th>Id Teamviwer</th>
 							<th>Location</th>
 							<th>Assigned to</th>
-							<th>Description</th>
 							<th>Editar</th>
 							<th>Borrar</th>
 						</thead>
 						<tbody>
 							{% for dev in devs %}
 								<tr>
-									<td><a href="{{ url_for("view_devices", did=dev.Device.id) }}">{{ dev.Device.name }}</a></td>
-									<td>{{ dev.Device.serial_number }}</td>
+									<td><a href="{{ url_for("view_devices", did=dev.Device.id) }}">{{ dev.Device.name }}</a>
+									</td>
+									<td>{{ dev.Device.marca }}</td>
+									<td>{{ dev.Device.model }}</td>
+									<td>{{ dev.Device.resolv_system() }}</td>
+									<td>{{ dev.Device.teamviewer }}</td>
 									<td>{{ dev.location_name}}</td>
 									<td>{% if dev.Device.user %}
 									<a href="{{ url_for("view_user", uid=dev.Device.user.id) }}">
@@ -73,5 +79,6 @@
 		scrollCollapse: true,
 	} );
 } );
+</script>
 </script>
 {% endblock %}

@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% from '_macro.html' import render_fields %}
 {% block title %}Device profile{% endblock %}
+{% block links %}
+<link href="{{ url_for('static', filename='css/dataTables.jqueryui.min.css') }}" rel="stylesheet">
+{% endblock %}
 {% block header %}
 <h2>{{ dev.Device.name }}</h2>
 {% endblock %}
@@ -41,7 +44,28 @@
 			<div class="panel panel-default">
 				<div class="panel-heading">Comentarios</div>
 				<div class="panel-body">
-					<p>proximamente...</p>
+					<table class="table table-hover" id="tableta">
+						<thead>
+							<th>Comentario</th>
+							<th>Usuario</th>
+							<th>Fecha</th>
+							<th>Borrar</th>
+						</thead>
+						<tbody>							
+							{% if dev.Device.comments %}
+								{% for comment in dev.Device.comments %}
+									<tr>
+										<td>{{ comment.text }}</td>
+										<td>{{ comment.user.username }}</td>
+										<td>{{ date_format(comment.create_date) }}</td>
+										<td><a href="{{ url_for("del_comment", did=dev.Device.id, cid=comment.id) }}">
+											<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+										</a></td>
+									</tr>
+								{% endfor %}
+							{% endif %}
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -51,7 +75,7 @@
 			<div class="panel panel-default">
 				<div class="panel-heading">Agregar Comentario</div>
 				<div class="panel-body">
-					<form method='POST'>
+					<form action="{{ url_for('add_comment', did=dev.Device.id) }}" method='POST'>
 						{{ form.csrf_token }}
 						<div class="form-group">
 						{{ render_fields(form.comment, class="form-control") }}
@@ -68,4 +92,21 @@
 </div>
 {% endblock %}
 {% block script %}
+<script src="{{ url_for('static', filename='js/dataTables.jqueryui.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+<script>
+	$(document).ready(function(){
+	$('#tableta').DataTable( {
+		paging: true,
+		lengthChange: false,
+		searching: false,
+		ordering: true,
+		stateSave: true,
+		autoWidth: true,
+		scrollx: true,
+		scrollY: 200,
+		scrollCollapse: true,
+	} );
+} );
+</script>
 {% endblock %}

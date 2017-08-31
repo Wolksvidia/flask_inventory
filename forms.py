@@ -77,7 +77,15 @@ class CreateDevice(FlaskForm):
     description = TextAreaField('Description')
     teamviwer = StringField('Id Teamviwer')
     location = SelectField('Location', coerce=int)
-    type_device = SelectField('Device Type', default='', choices=[('dk', 'Deskltop'), ('lp', 'Laptop')])
+    type_device = SelectField('Device Type', default='',
+        choices=[('dk', 'Deskltop'), ('lp', 'Laptop'), ('imp', 'Impresora')])
+    marca = StringField('Marca')
+    model = StringField('Model')
+    system = SelectField('System', default='', choices=[('wx', 'Windows XP'),
+        ('w7', 'Windows 7'), ('w8', 'Windows 8/8.1'),
+        ('ws03', 'Windows Server 2003/R2'), ('ws08', 'Windows Server 2008/R2'),
+        ('ws12', 'Windows Server 2012/R2'), ('w10', 'Windows 10'),
+        ('ld', 'Linux Debian')])
 
     def validate_name(form, field):
         name = field.data
@@ -112,7 +120,15 @@ class UpdateDevice(FlaskForm):
     description = TextAreaField('Description')
     teamviwer = StringField('Id Teamviwer')
     location = SelectField('Location', coerce=int)
-    type_device = SelectField('Device Type', default='', choices=[('dk', 'Desktop'), ('lp', 'Laptop')])
+    type_device = SelectField('Device Type', default='',
+        choices=[('dk', 'Desktop'), ('lp', 'Laptop')])
+    marca = StringField('Marca')
+    model = StringField('Model')
+    system = SelectField('System', default='', choices=[('wx', 'Windows XP'),
+        ('w7', 'Windows 7'), ('w8', 'Windows 8/8.1'),
+        ('ws03', 'Windows Server 2003/R2'), ('ws08', 'Windows Server 2008/R2'),
+        ('ws12', 'Windows Server 2012/R2'), ('w10', 'Windows 10'),
+        ('ld', 'Linux Debian')])
 
 
 class CreateLocation(FlaskForm):
