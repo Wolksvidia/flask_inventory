@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Dispositivos{% endblock %}
 {% block links %}
-<link href="{{ url_for('static', filename='css/dataTables.jqueryui.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" rel="stylesheet">
 {% endblock %}
 {% block header %}
 <h2>Dispositivos</h2>
@@ -27,8 +27,10 @@
 						<tbody>
 							{% for dev in devs %}
 								<tr>
-									<td><a href="{{ url_for("view_devices", did=dev.Device.id) }}">{{ dev.Device.name }}</a>
-									</td>
+									<td>
+									<a href="{{ url_for("view_devices", did=dev.Device.id) }}">
+									{{ dev.Device.name }}
+									</a></td>
 									<td>{{ dev.Device.marca }}</td>
 									<td>{{ dev.Device.model }}</td>
 									<td>{{ dev.Device.resolv_system() }}</td>
@@ -63,7 +65,6 @@
 </div>
 {% endblock %}
 {% block script %}
-<script src="{{ url_for('static', filename='js/dataTables.jqueryui.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
 <script>
 	$(document).ready(function(){
