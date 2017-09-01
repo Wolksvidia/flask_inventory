@@ -76,19 +76,5 @@
 </div>
 {% endblock %}
 {% block script %}
-<script>
-	$('#cant').change( function() 
-	{
-	var selectedValue = parseInt(jQuery(this).val());
-	if(selectedValue == "1"){
-	location.href="{{ url_for("view_devices_old", page=1, per_page=2) }}";
-	}
-	if(selectedValue == "2"){
-	location.href="{{ url_for("view_devices_old", page=1, per_page=10) }}";
-	}
-	if(selectedValue == "3"){
-	location.href="{{ url_for("view_devices_old", page=1, per_page=50) }}";
-	}
-	});
-</script>
+
 {% endblock %}

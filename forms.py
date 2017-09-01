@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, PasswordField, TextAreaField, SelectField, FieldList
+from wtforms import StringField, HiddenField, PasswordField, TextAreaField, SelectField, BooleanField
 from wtforms import validators
 from wtforms.fields.html5 import EmailField
 from models import User, Location, Device
@@ -48,18 +48,22 @@ class CreateUserForm(FlaskForm):
         validators.DataRequired(message='El usuario es requerido.'),
         validators.Length(min=4, max=50, message='Ingrese un usuario valido.'),
         ])
+    first_name = StringField('First Name')
+    last_name = StringField('Last Name')
     email = EmailField('Email',
         [
         validators.DataRequired(message='El email es requerido.'),
         validators.Email(message='Ingrese un email valido.'),
         validators.Length(min=4, max=50, message='Ingrese un email valido.')
         ])
+    phone = StringField('Telephone number')
+    staff = BooleanField('Is Staff')
     password = PasswordField('Password',
         [
-        validators.DataRequired(message='La password es requerida.'),
         validators.EqualTo('confirm', message='Las passwords deben coincidir!!')
         ])
     confirm = PasswordField('Repita la Password')
+    location = SelectField('Location', coerce=int)
 
     def validate_username(form, field):
         username = field.data

@@ -50,7 +50,7 @@
 
 {% macro render_fields(field) %}
 	<td> {{ field.label }}
-	<dd> {{ field(**kwargs)|safe }}
+	{{ field(**kwargs)|safe }}
 	{% if field.errors %}
 		<ul>
 			{% for error in field.errors %}

@@ -46,7 +46,7 @@ def send_email(username, email):
 with app.app_context():
     db.create_all()
     user = User(username='admin', email='admin@example.com',
-        password='Admin2017', staff=True)
+        password='admin', staff=True)
     try:
         db.session.add(user)
         db.session.commit()
@@ -121,10 +121,14 @@ def logout():
 def new_user(id=None):
     if id is None:
         user_form = forms.CreateUserForm(request.form)
+        user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
         if request.method == 'POST' and user_form.validate():
             user = User(user_form.username.data,
                 user_form.email.data,
-                user_form.password.data)
+                user_form.password.data,
+                user_form.staff.data, user_form.first_name.data,
+                user_form.last_name.data,
+                user_form.location.data, user_form.phone.data)
             try:
                 db.session.add(user)
                 db.session.commit()
@@ -136,8 +140,8 @@ def new_user(id=None):
 
                 sender = threading.Thread(name='mail_sender',
                     target=send_message, args=(user.username, user.email, ))
-                sender.start()
-                return redirect(url_for('login'))
+                #sender.start()
+                return redirect(url_for('new_user'))
             except Exception as e:
                 print(e)
                 flash(('danger', 'Lo sentimos algo salio mal!.'))
@@ -315,15 +319,36 @@ def del_device(id):
     return redirect(url_for('new_device'))
 
 
+@app.route('/device/state/<int:did>', methods=['GET'])
+def change_device_state(did):
+    dev = Device.query.filter(Device.id == did).one_or_none()
+    if dev is not None:
+        try:
+            if dev.active:
+                dev.active = False
+            else:
+                dev.active = True
+            db.session.add(dev)
+            db.session.commit()
+            flash(('success', 'Estado cambiado exitosamente!.'))
+            return redirect(url_for('view_devices', did=dev.id))
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('view_devices', did=dev.id))
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
+    return redirect(url_for('view_devices', did=dev.id))
+
+
 @app.route('/device/assign', methods=['GET', 'POST'])
 def assign_device():
     form = forms.AssignDevice(request.form)
     if request.method == 'GET':
-        form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.user_id == None).order_by('name').all()]
+        form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.user_id == None).filter(Device.active).order_by('name').all()]
         if len(form.device.choices) is 0:
             flash(('danger', 'Lo sentimos no hay equipos disponibles para asignar!.'))
             return redirect(url_for('view_devices'))
-        form.user.choices = [(g.id, g.username) for g in User.query.order_by('username').all()]
+        form.user.choices = [(g.id, g.username) for g in User.query.filter(User.username != 'admin').order_by('username').all()]
         return render_template('assign_dev.html', form=form)
     elif request.method == 'POST':
         dev = Device.query.filter(Device.id == form.device.data).one_or_none()

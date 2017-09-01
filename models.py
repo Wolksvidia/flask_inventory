@@ -11,7 +11,10 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True)
+    first_name = db.Column(db.String(40))
+    last_name = db.Column(db.String(40))
     email = db.Column(db.String(40))
+    phone = db.Column(db.String(40))
     password = db.Column(db.String(120))
     create_date = db.Column(db.DateTime, default=datetime.datetime.now)
     staff = db.Column(db.Boolean)
@@ -19,11 +22,15 @@ class User(db.Model):
     device_id = db.relationship('Device', back_populates='user')
     comment_id = db.relationship('Comment', back_populates='user')
 
-    def __init__(self, username, email, password, staff=False):
+    def __init__(self, username, email, password=None, staff=False, first_name=None, last_name=None, location=None, phone=None):
             self.username = username
             self.email = email
             self.password = self._create_password(password)
             self.staff = staff
+            self.first_name = first_name
+            self.last_name = last_name
+            self.location = location
+            self.phone = phone
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -70,7 +77,7 @@ class Device(db.Model):
     name = db.Column(db.String(50), unique=True)
     marca = db.Column(db.String(50))
     model = db.Column(db.String(50))
-    serial_number = db.Column(db.String(50), unique=True)
+    serial_number = db.Column(db.String(50))
     description = db.Column(db.Text)
     system = db.Column(db.String(10))
     teamviwer = db.Column(db.String(9))

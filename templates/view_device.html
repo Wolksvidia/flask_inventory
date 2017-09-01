@@ -16,14 +16,24 @@
 				<div class="panel-body">
 					<div class="col-md-6">
 						<h4>Nombre: {{dev.Device.name}}</h4>
-						<h4>Serial Number: {{dev.Device.serial_number}}</h4>
-						<h4>Type: {{dev.Device.resolv_type()}}</h4>
+						<h4>Location: {{dev.location_name}}</h4>
+						<h4>Assigned to: {% if dev.Device.user %}
+						<a href="{{url_for("view_user", uid=dev.Device.user.id)}}">
+						<span class="label label-primary">{{ dev.Device.user.username }}</span></a>
+						{% else %}<span class="label label-info">Unassigned</span>{% endif %}</h4>
+						<h4>Id Teamviwer: {{dev.Device.teamviwer }}</h4>
+						<h4><span class="label label-{% if dev.Device.active %}success{% else %}danger{% endif %}">Estado:</span> 
+						<select id="state">
+							<option value="1" {% if dev.Device.active %}selected="selected"{% endif %}>ACTIVO</option>
+							<option value="1" {% if not dev.Device.active %}selected="selected"{% endif %}>BAJA</option>
+						</select></h4>
 					</div>
 					<div class="col-md-6">
-						<h4>Location: {{dev.location_name}}</h4>
-						<h4>{% if dev.Device.user %}
-						<a href="{{url_for("view_user", uid=dev.Device.user.id)}}">{{ dev.Device.user.username }}</a>
-						{% else %}Unassigned{% endif %}</h4>
+						<h4>Marca: {{dev.Device.marca }}</h4>
+						<h4>Modelo: {{dev.Device.model }}</h4>
+						<h4>Type: {{dev.Device.resolv_type()}}</h4>
+						<h4>Serial Number: {{dev.Device.serial_number }}</h4>
+						<h4>Sistema Operativo: {{dev.Device.resolv_system() }}</h4>
 					</div>
 				</div>
 			</div>	
@@ -107,5 +117,14 @@
 		scrollCollapse: true,
 	} );
 } );
+</script>
+<script>
+	$('#state').change( function() 
+	{
+	var selectedValue = parseInt(jQuery(this).val());
+	if(selectedValue == "1"){
+	location.href="{{ url_for("change_device_state", did=dev.Device.id) }}";
+	}
+	});
 </script>
 {% endblock %}
