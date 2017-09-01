@@ -140,7 +140,7 @@ def new_user(id=None):
 
                 sender = threading.Thread(name='mail_sender',
                     target=send_message, args=(user.username, user.email, ))
-                #sender.start()
+                sender.start()
                 return redirect(url_for('new_user'))
             except Exception as e:
                 print(e)
