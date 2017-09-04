@@ -156,7 +156,7 @@ def new_user(id=None):
 def del_user(id):
     user = User.query.filter(User.id == id).one_or_none()
     if user is not None:
-        if len(user.device_assigned) is 0:
+        if len(user.device_id) is 0:
             try:
                 db.session.delete(user)
                 db.session.commit()
