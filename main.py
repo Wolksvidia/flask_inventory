@@ -34,14 +34,15 @@ manager.add_command('db', MigrateCommand)
 mail = Mail(app)
 
 
-def send_email(username, email):
+def send_email(username, email, message, subject):
 #Configuracion del email de registro
-    msg = Message('Gracias por registrarte!',
+    msg = Message(subject,
         sender=app.config['MAIL_USERNAME'],
         recipients=[email, ])
 #renderizo un template como cuerpo de mensaje
-    msg.html = render_template('mail.html', user=username)
+    msg.html = render_template('mail.html', user=username, message=message)
     mail.send(msg)
+
 
 with app.app_context():
     db.create_all()
@@ -62,6 +63,7 @@ def page_not_found(error):
 #Este decorador hace que la funcion se ejecute antes de cualquier otra peticion
 @app.before_request
 def berfore_request():
+    """
     if 'username' not in session:
         session['urls'] = ({'url': 'index', 'name': 'Home'},
             {'url': 'login', 'name': 'Login'})
@@ -72,8 +74,7 @@ def berfore_request():
             {'url': 'assign_device', 'name': 'Assign Device'},
             {'url': 'view_devices', 'name': 'View Devices'},
             {'url': 'view_user', 'name': 'View Users'},
-            {'url': 'new_user', 'name': 'New User'},
-            {'url': 'logout', 'name': 'Logout'})
+            {'url': 'new_user', 'name': 'New User'})"""
 
 
 #Este se prosesa posteriormente de que se procese la url solicitada
@@ -87,6 +88,8 @@ def after_request(response):
 @app.route('/')
 @app.route('/index')
 def index():
+    if 'username' not in session:
+        return redirect(url_for('login'))
     return render_template('index.html')
 
 
@@ -101,6 +104,11 @@ def login():
             flash(('info', 'Bienvenido {}.'.format(username)))
             session['username'] = username
             session['user_id'] = user.id
+            session['urls_u'] = ({'url': 'view_user', 'name': 'View Users'},
+                {'url': 'new_user', 'name': 'New User'})
+            session['urls_d'] = ({'url': 'view_devices', 'name': 'View Devices'},
+                {'url': 'new_device', 'name': 'New Device'},
+                {'url': 'assign_device', 'name': 'Assign Device'},)
             return redirect(url_for('index'))
         else:
             flash(('danger', 'Contraseña o usuario incorrectos.'))
@@ -112,7 +120,7 @@ def logout():
     if 'username' in session:
         session.clear()
     #url_for devuelve la ruta de un recurso, en este caso el de la funcion login
-    flash(('info', 'Vuelva pronto!.'))
+    flash(('info', 'Gracias! Vuelva pronto!'))
     return redirect(url_for('index'))
 
 
@@ -133,14 +141,6 @@ def new_user(id=None):
                 db.session.add(user)
                 db.session.commit()
                 flash(('success', 'Usuario creado correctamente.'))
-
-                @copy_current_request_context
-                def send_message(username, email):
-                    send_email(username, email)
-
-                sender = threading.Thread(name='mail_sender',
-                    target=send_message, args=(user.username, user.email, ))
-                sender.start()
                 return redirect(url_for('new_user'))
             except Exception as e:
                 print(e)
@@ -352,12 +352,23 @@ def assign_device():
         return render_template('assign_dev.html', form=form)
     elif request.method == 'POST':
         dev = Device.query.filter(Device.id == form.device.data).one_or_none()
-        if dev is not None:
-            dev.user_id = form.user.data
+        user = User.query.filter(User.id == form.user.data).one_or_none()
+        if (dev and user) is not None:
+            dev.user_id = user.id
             try:
                 db.session.add(dev)
                 db.session.commit()
                 flash(('success', 'Dispositivo guardado exitosamente!.'))
+                username = user.username
+                email = user.email
+                dname = dev.name
+                if form.notify.data:
+                    @copy_current_request_context
+                    def send_message(username, email, dname):
+                        send_email(username, email, 'El dispositivo '+dname+' le ha sido asignado.', 'Asignacion de equipo.')
+                    sender = threading.Thread(name='mail_sender',
+                        target=send_message, args=(username, email, dname, ))
+                    sender.start()
                 return redirect(url_for('assign_device'))
             except Exception as e:
                 print(e)

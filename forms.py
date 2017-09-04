@@ -150,5 +150,6 @@ class CreateLocation(FlaskForm):
 class AssignDevice(FlaskForm):
     user = SelectField('Users', coerce=int)
     device = SelectField('Devices', coerce=int)
+    notify = BooleanField('¿Notificar al usuario?')
     #user_list = FieldList(users)
     #device_list = FieldList(devices)

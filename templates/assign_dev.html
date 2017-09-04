@@ -2,7 +2,7 @@
 {% from '_macro.html' import render_fields %}
 {% block title %}Dispositivo{% endblock %}
 {% block header %}
-<h2>Assign Dispositivo</h2>
+<h2>Asignar Dispositivo</h2>
 {% endblock %}
 {% block content %}
 <div class="container">
@@ -16,6 +16,9 @@
 					</div>
 					<div class="form-group">
 						{{ render_fields(form.device,class="form-control") }}
+					</div>
+					<div class="form-group">
+						{{ render_fields(form.notify) }}
 					</div>
 					<div class="form-group">
 						<button type="submit" class="btn btn-default form-control">Guardar</button>
