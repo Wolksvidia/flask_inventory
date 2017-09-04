@@ -2,7 +2,7 @@
 {% from '_macro.html' import render_fields %}
 {% block title %}Locations{% endblock %}
 {% block links %}
-<link href="{{ url_for('static', filename='css/dataTables.jqueryui.min.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" rel="stylesheet">
 {% endblock %}
 {% block header %}
 <h2>Locations</h2>
@@ -62,7 +62,6 @@
 </div>
 {% endblock %}
 {% block script %}
-<script src="{{ url_for('static', filename='js/dataTables.jqueryui.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
 <script>
 	$(document).ready(function(){

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, PasswordField, TextAreaField, SelectField, FieldList
+from wtforms import StringField, HiddenField, PasswordField, TextAreaField, SelectField, BooleanField
 from wtforms import validators
 from wtforms.fields.html5 import EmailField
 from models import User, Location, Device
@@ -48,18 +48,22 @@ class CreateUserForm(FlaskForm):
         validators.DataRequired(message='El usuario es requerido.'),
         validators.Length(min=4, max=50, message='Ingrese un usuario valido.'),
         ])
+    first_name = StringField('First Name')
+    last_name = StringField('Last Name')
     email = EmailField('Email',
         [
         validators.DataRequired(message='El email es requerido.'),
         validators.Email(message='Ingrese un email valido.'),
         validators.Length(min=4, max=50, message='Ingrese un email valido.')
         ])
+    phone = StringField('Telephone number')
+    staff = BooleanField('Is Staff')
     password = PasswordField('Password',
         [
-        validators.DataRequired(message='La password es requerida.'),
         validators.EqualTo('confirm', message='Las passwords deben coincidir!!')
         ])
     confirm = PasswordField('Repita la Password')
+    location = SelectField('Location', coerce=int)
 
     def validate_username(form, field):
         username = field.data
@@ -77,7 +81,15 @@ class CreateDevice(FlaskForm):
     description = TextAreaField('Description')
     teamviwer = StringField('Id Teamviwer')
     location = SelectField('Location', coerce=int)
-    type_device = SelectField('Device Type', default='', choices=[('dk', 'Deskltop'), ('lp', 'Laptop')])
+    type_device = SelectField('Device Type', default='',
+        choices=[('dk', 'Deskltop'), ('lp', 'Laptop'), ('imp', 'Impresora')])
+    marca = StringField('Marca')
+    model = StringField('Model')
+    system = SelectField('System', default='', choices=[('wx', 'Windows XP'),
+        ('w7', 'Windows 7'), ('w8', 'Windows 8/8.1'),
+        ('ws03', 'Windows Server 2003/R2'), ('ws08', 'Windows Server 2008/R2'),
+        ('ws12', 'Windows Server 2012/R2'), ('w10', 'Windows 10'),
+        ('ld', 'Linux Debian')])
 
     def validate_name(form, field):
         name = field.data
@@ -112,7 +124,15 @@ class UpdateDevice(FlaskForm):
     description = TextAreaField('Description')
     teamviwer = StringField('Id Teamviwer')
     location = SelectField('Location', coerce=int)
-    type_device = SelectField('Device Type', default='', choices=[('dk', 'Desktop'), ('lp', 'Laptop')])
+    type_device = SelectField('Device Type', default='',
+        choices=[('dk', 'Desktop'), ('lp', 'Laptop')])
+    marca = StringField('Marca')
+    model = StringField('Model')
+    system = SelectField('System', default='', choices=[('wx', 'Windows XP'),
+        ('w7', 'Windows 7'), ('w8', 'Windows 8/8.1'),
+        ('ws03', 'Windows Server 2003/R2'), ('ws08', 'Windows Server 2008/R2'),
+        ('ws12', 'Windows Server 2012/R2'), ('w10', 'Windows 10'),
+        ('ld', 'Linux Debian')])
 
 
 class CreateLocation(FlaskForm):
@@ -130,5 +150,6 @@ class CreateLocation(FlaskForm):
 class AssignDevice(FlaskForm):
     user = SelectField('Users', coerce=int)
     device = SelectField('Devices', coerce=int)
+    notify = BooleanField('¿Notificar al usuario?')
     #user_list = FieldList(users)
     #device_list = FieldList(devices)

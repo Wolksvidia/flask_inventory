@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% from '_macro.html' import render_fields %}
 {% block title %}Device profile{% endblock %}
+{% block links %}
+<link href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}" rel="stylesheet">
+{% endblock %}
 {% block header %}
 <h2>{{ dev.Device.name }}</h2>
 {% endblock %}
@@ -13,14 +16,24 @@
 				<div class="panel-body">
 					<div class="col-md-6">
 						<h4>Nombre: {{dev.Device.name}}</h4>
-						<h4>Serial Number: {{dev.Device.serial_number}}</h4>
-						<h4>Type: {{dev.Device.resolv_type()}}</h4>
+						<h4>Location: {{dev.location_name}}</h4>
+						<h4>Assigned to: {% if dev.Device.user %}
+						<a href="{{url_for("view_user", uid=dev.Device.user.id)}}">
+						<span class="label label-primary">{{ dev.Device.user.username }}</span></a>
+						{% else %}<span class="label label-info">Unassigned</span>{% endif %}</h4>
+						<h4>Id Teamviwer: {{dev.Device.teamviwer }}</h4>
+						<h4><span class="label label-{% if dev.Device.active %}success{% else %}danger{% endif %}">Estado:</span> 
+						<select id="state">
+							<option value="1" {% if dev.Device.active %}selected="selected"{% endif %}>ACTIVO</option>
+							<option value="1" {% if not dev.Device.active %}selected="selected"{% endif %}>BAJA</option>
+						</select></h4>
 					</div>
 					<div class="col-md-6">
-						<h4>Location: {{dev.location_name}}</h4>
-						<h4>{% if dev.Device.user %}
-						<a href="{{url_for("view_user", uid=dev.Device.user.id)}}">{{ dev.Device.user.username }}</a>
-						{% else %}Unassigned{% endif %}</h4>
+						<h4>Marca: {{dev.Device.marca }}</h4>
+						<h4>Modelo: {{dev.Device.model }}</h4>
+						<h4>Type: {{dev.Device.resolv_type()}}</h4>
+						<h4>Serial Number: {{dev.Device.serial_number }}</h4>
+						<h4>Sistema Operativo: {{dev.Device.resolv_system() }}</h4>
 					</div>
 				</div>
 			</div>	
@@ -41,7 +54,28 @@
 			<div class="panel panel-default">
 				<div class="panel-heading">Comentarios</div>
 				<div class="panel-body">
-					<p>proximamente...</p>
+					<table class="table table-hover" id="tableta">
+						<thead>
+							<th>Comentario</th>
+							<th>Usuario</th>
+							<th>Fecha</th>
+							<th>Borrar</th>
+						</thead>
+						<tbody>							
+							{% if dev.Device.comments %}
+								{% for comment in dev.Device.comments %}
+									<tr>
+										<td>{{ comment.text }}</td>
+										<td>{{ comment.user.username }}</td>
+										<td>{{ date_format(comment.create_date) }}</td>
+										<td><a href="{{ url_for("del_comment", did=dev.Device.id, cid=comment.id) }}">
+											<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+										</a></td>
+									</tr>
+								{% endfor %}
+							{% endif %}
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -51,7 +85,7 @@
 			<div class="panel panel-default">
 				<div class="panel-heading">Agregar Comentario</div>
 				<div class="panel-body">
-					<form method='POST'>
+					<form action="{{ url_for('add_comment', did=dev.Device.id) }}" method='POST'>
 						{{ form.csrf_token }}
 						<div class="form-group">
 						{{ render_fields(form.comment, class="form-control") }}
@@ -68,4 +102,29 @@
 </div>
 {% endblock %}
 {% block script %}
+<script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+<script>
+	$(document).ready(function(){
+	$('#tableta').DataTable( {
+		paging: true,
+		lengthChange: false,
+		searching: false,
+		ordering: true,
+		stateSave: true,
+		autoWidth: true,
+		scrollx: true,
+		scrollY: 200,
+		scrollCollapse: true,
+	} );
+} );
+</script>
+<script>
+	$('#state').change( function() 
+	{
+	var selectedValue = parseInt(jQuery(this).val());
+	if(selectedValue == "1"){
+	location.href="{{ url_for("change_device_state", did=dev.Device.id) }}";
+	}
+	});
+</script>
 {% endblock %}

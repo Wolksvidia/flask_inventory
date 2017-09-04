@@ -12,7 +12,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from config import DevelopmentConfig
 from models import db, User, Comment, Location, Device
-#from helpers import date_format
+from helpers import date_format
 import flask_excel as excel
 import threading
 import forms
@@ -34,17 +34,25 @@ manager.add_command('db', MigrateCommand)
 mail = Mail(app)
 
 
-def send_email(username, email):
+def send_email(username, email, message, subject):
 #Configuracion del email de registro
-    msg = Message('Gracias por registrarte!',
+    msg = Message(subject,
         sender=app.config['MAIL_USERNAME'],
         recipients=[email, ])
 #renderizo un template como cuerpo de mensaje
-    msg.html = render_template('mail.html', user=username)
+    msg.html = render_template('mail.html', user=username, message=message)
     mail.send(msg)
+
 
 with app.app_context():
     db.create_all()
+    user = User(username='admin', email='admin@example.com',
+        password='admin', staff=True)
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        print(e)
 
 
 @app.errorhandler(404)
@@ -55,10 +63,10 @@ def page_not_found(error):
 #Este decorador hace que la funcion se ejecute antes de cualquier otra peticion
 @app.before_request
 def berfore_request():
+    """
     if 'username' not in session:
         session['urls'] = ({'url': 'index', 'name': 'Home'},
-            {'url': 'login', 'name': 'Login'},
-            {'url': 'new_user', 'name': 'New User'})
+            {'url': 'login', 'name': 'Login'})
     else:
         session['urls'] = ({'url': 'index', 'name': 'Home'},
             {'url': 'new_location', 'name': 'Locations'},
@@ -66,7 +74,7 @@ def berfore_request():
             {'url': 'assign_device', 'name': 'Assign Device'},
             {'url': 'view_devices', 'name': 'View Devices'},
             {'url': 'view_user', 'name': 'View Users'},
-            {'url': 'logout', 'name': 'Logout'})
+            {'url': 'new_user', 'name': 'New User'})"""
 
 
 #Este se prosesa posteriormente de que se procese la url solicitada
@@ -80,6 +88,8 @@ def after_request(response):
 @app.route('/')
 @app.route('/index')
 def index():
+    if 'username' not in session:
+        return redirect(url_for('login'))
     return render_template('index.html')
 
 
@@ -90,10 +100,15 @@ def login():
         username = login_form.username.data
         password = login_form.password.data
         user = User.query.filter_by(username=username).first()
-        if user is not None and user.verify_password(password):
+        if user is not None and user.verify_password(password) and user.staff is True:
             flash(('info', 'Bienvenido {}.'.format(username)))
             session['username'] = username
             session['user_id'] = user.id
+            session['urls_u'] = ({'url': 'view_user', 'name': 'View Users'},
+                {'url': 'new_user', 'name': 'New User'})
+            session['urls_d'] = ({'url': 'view_devices', 'name': 'View Devices'},
+                {'url': 'new_device', 'name': 'New Device'},
+                {'url': 'assign_device', 'name': 'Assign Device'},)
             return redirect(url_for('index'))
         else:
             flash(('danger', 'Contraseña o usuario incorrectos.'))
@@ -105,7 +120,7 @@ def logout():
     if 'username' in session:
         session.clear()
     #url_for devuelve la ruta de un recurso, en este caso el de la funcion login
-    flash(('info', 'Vuelva pronto!.'))
+    flash(('info', 'Gracias! Vuelva pronto!'))
     return redirect(url_for('index'))
 
 
@@ -114,23 +129,19 @@ def logout():
 def new_user(id=None):
     if id is None:
         user_form = forms.CreateUserForm(request.form)
+        user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
         if request.method == 'POST' and user_form.validate():
             user = User(user_form.username.data,
                 user_form.email.data,
-                user_form.password.data)
+                user_form.password.data,
+                user_form.staff.data, user_form.first_name.data,
+                user_form.last_name.data,
+                user_form.location.data, user_form.phone.data)
             try:
                 db.session.add(user)
                 db.session.commit()
                 flash(('success', 'Usuario creado correctamente.'))
-
-                @copy_current_request_context
-                def send_message(username, email):
-                    send_email(username, email)
-
-                sender = threading.Thread(name='mail_sender',
-                    target=send_message, args=(user.username, user.email, ))
-                sender.start()
-                return redirect(url_for('login'))
+                return redirect(url_for('new_user'))
             except Exception as e:
                 print(e)
                 flash(('danger', 'Lo sentimos algo salio mal!.'))
@@ -213,8 +224,11 @@ def new_device(id=None):
             form.location.data = dev.location
             form.serial_number.data = dev.serial_number
             form.description.data = dev.description
-            #form.teamviwer.data = dev.teamviwer
-            #form.type_device = dev.type_device
+            form.teamviwer.data = dev.teamviwer
+            form.type_device.data = dev.type_device
+            form.model.data = dev.model
+            form.marca.data = dev.marca
+            form.system.data = dev.system
         else:
             abort(404)
     if request.method == 'POST' and form.validate():
@@ -229,9 +243,13 @@ def new_device(id=None):
             dev.type_device = form.type_device.data
             dev.location = form.location.data"""
         else:
-            dev = Device(name=form.name.data, serial_number=form.serial_number.data,
-                description=form.description.data, teamviwer=form.teamviwer.data,
-                type_device=form.type_device.data, location=form.location.data)
+            dev = Device(name=form.name.data,
+                serial_number=form.serial_number.data,
+                description=form.description.data,
+                teamviwer=form.teamviwer.data,
+                type_device=form.type_device.data, location=form.location.data,
+                marca=form.marca.data, model=form.model.data,
+                system=form.system.data)
         try:
             db.session.add(dev)
             db.session.commit()
@@ -268,7 +286,7 @@ def view_devices_old(page=1, per_page=2):
 
 
 @app.route('/device/view', methods=['GET'])
-@app.route('/device/view/<int:did>', methods=['GET', 'POST'])
+@app.route('/device/view/<int:did>', methods=['GET'])
 def view_devices(did=None):
     if did is None:
         devs = Device.query.order_by(Device.name).outerjoin(Location).add_columns(Location.location_name).all()
@@ -281,21 +299,7 @@ def view_devices(did=None):
             flash(('danger', 'Dispositivo no encontrado!.'))
             return redirect(url_for('index'))
         form = forms.CommentForm(request.form)
-        if request.method == 'POST' and form.validate():
-            pass
-            """user_id = session['user_id']
-            device_id = dev.id
-            comment = Comment(user_id=user_id, device_id=device_id,
-                text=form.comment.data)
-            try:
-                db.session.add(comment)
-                db.session.commit()
-                flash(('success', 'Comentario guardado exitosamente!.'))
-                return redirect(url_for('view_divices', did=dev.id, dev=dev, form=form))
-            except Exception as e:
-                print(e)
-                flash(('danger', 'Lo sentimos algo salio mal!.'))"""
-        return render_template('view_device.html', dev=dev, form=form)
+        return render_template('view_device.html', dev=dev, form=form, date_format=date_format)
 
 
 @app.route('/device/del/<int:id>')
@@ -311,27 +315,60 @@ def del_device(id):
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
             return redirect(url_for('index'))
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
     return redirect(url_for('new_device'))
+
+
+@app.route('/device/state/<int:did>', methods=['GET'])
+def change_device_state(did):
+    dev = Device.query.filter(Device.id == did).one_or_none()
+    if dev is not None:
+        try:
+            if dev.active:
+                dev.active = False
+            else:
+                dev.active = True
+            db.session.add(dev)
+            db.session.commit()
+            flash(('success', 'Estado cambiado exitosamente!.'))
+            return redirect(url_for('view_devices', did=dev.id))
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('view_devices', did=dev.id))
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
+    return redirect(url_for('view_devices', did=dev.id))
 
 
 @app.route('/device/assign', methods=['GET', 'POST'])
 def assign_device():
     form = forms.AssignDevice(request.form)
     if request.method == 'GET':
-        form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.user_id == None).order_by('name').all()]
+        form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.user_id == None).filter(Device.active).order_by('name').all()]
         if len(form.device.choices) is 0:
             flash(('danger', 'Lo sentimos no hay equipos disponibles para asignar!.'))
             return redirect(url_for('view_devices'))
-        form.user.choices = [(g.id, g.username) for g in User.query.order_by('username').all()]
+        form.user.choices = [(g.id, g.username) for g in User.query.filter(User.username != 'admin').order_by('username').all()]
         return render_template('assign_dev.html', form=form)
     elif request.method == 'POST':
         dev = Device.query.filter(Device.id == form.device.data).one_or_none()
-        if dev is not None:
-            dev.user_id = form.user.data
+        user = User.query.filter(User.id == form.user.data).one_or_none()
+        if (dev and user) is not None:
+            dev.user_id = user.id
             try:
                 db.session.add(dev)
                 db.session.commit()
                 flash(('success', 'Dispositivo guardado exitosamente!.'))
+                username = user.username
+                email = user.email
+                dname = dev.name
+                if form.notify.data:
+                    @copy_current_request_context
+                    def send_message(username, email, dname):
+                        send_email(username, email, 'El dispositivo '+dname+' le ha sido asignado.', 'Asignacion de equipo.')
+                    sender = threading.Thread(name='mail_sender',
+                        target=send_message, args=(username, email, dname, ))
+                    sender.start()
                 return redirect(url_for('assign_device'))
             except Exception as e:
                 print(e)
@@ -359,6 +396,41 @@ def unassign_device(did):
             return redirect(url_for('index'))
     flash(('danger', 'Lo sentimos algo salio mal!.'))
     return redirect(url_for('view_user', uid=uid))
+
+
+@app.route('/device/<int:did>/comment/add', methods=['POST'])
+def add_comment(did):
+    form = forms.CommentForm(request.form)
+    if request.method == 'POST' and form.validate():
+        comment = Comment(session['user_id'], did, form.comment.data)
+        try:
+            db.session.add(comment)
+            db.session.commit()
+            flash(('success', 'Comentario guardado exitosamente!.'))
+            return redirect(url_for('view_devices', did=did))
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('view_devices', did=did))
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
+    return redirect(url_for('view_devices', did=did))
+
+
+@app.route('/device/<int:did>/comment/del/<int:cid>', methods=['GET'])
+def del_comment(did, cid):
+    cm = Comment.query.filter(Comment.id == cid).one_or_none()
+    if cm is not None:
+        try:
+            db.session.delete(cm)
+            db.session.commit()
+            flash(('success', 'El comentario se borro exitosamente!.'))
+            return redirect(url_for('view_devices', did=did))
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('view_devices', did=did))
+    flash(('danger', 'Lo sentimos algo salio mal!.'))
+    return redirect(url_for('view_devices', did=did))
 
 
 @app.route('/location/new', methods=['GET', 'POST'])

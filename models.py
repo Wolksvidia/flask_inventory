@@ -11,19 +11,26 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True)
+    first_name = db.Column(db.String(40))
+    last_name = db.Column(db.String(40))
     email = db.Column(db.String(40))
+    phone = db.Column(db.String(40))
     password = db.Column(db.String(120))
     create_date = db.Column(db.DateTime, default=datetime.datetime.now)
     staff = db.Column(db.Boolean)
     location = db.Column(db.Integer, db.ForeignKey('locations.id'))
     device_id = db.relationship('Device', back_populates='user')
-#    comments = db.relationship('Comment', back_populates='user')
+    comment_id = db.relationship('Comment', back_populates='user')
 
-    def __init__(self, username, email, password):
+    def __init__(self, username, email, password=None, staff=False, first_name=None, last_name=None, location=None, phone=None):
             self.username = username
             self.email = email
             self.password = self._create_password(password)
-            self.staff = False
+            self.staff = staff
+            self.first_name = first_name
+            self.last_name = last_name
+            self.location = location
+            self.phone = phone
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -39,11 +46,17 @@ class Comment(db.Model):
     __tablename__ = 'comments'
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text)
-    create_date = db.Column(db.DateTime, default=datetime.datetime.now)
-#    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-#    user = db.relationship('user', back_populates='comments')
-#    device_id = db.Column(db.Integer, db.ForeignKey('devices.id'))
-#    device = db.relationship('Device', back_populates='comment_id')
+    create_date = db.Column(db.DateTime)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user = db.relationship('User', back_populates='comment_id')
+    device_id = db.Column(db.Integer, db.ForeignKey('devices.id'))
+    device = db.relationship('Device', back_populates='comments')
+
+    def __init__(self, user, device, text):
+        self.user_id = user
+        self.device_id = device
+        self.text = text
+        self.create_date = datetime.datetime.now()
 
 
 class Location(db.Model):
@@ -62,18 +75,22 @@ class Device(db.Model):
     __tablename__ = 'devices'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True)
-    serial_number = db.Column(db.String(50), unique=True)
+    marca = db.Column(db.String(50))
+    model = db.Column(db.String(50))
+    serial_number = db.Column(db.String(50))
     description = db.Column(db.Text)
-    teamviwer = (db.String(9))
+    system = db.Column(db.String(10))
+    teamviwer = db.Column(db.String(9))
     location = db.Column(db.Integer, db.ForeignKey('locations.id'))
-    type_device = db.Column(db.String(50))
+    type_device = db.Column(db.String(4))
     active = db.Column(db.Boolean)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user = db.relationship('User', back_populates='device_id')
-#    comment_id = db.relationship('Comment', back_populates='device')
+    comments = db.relationship('Comment', back_populates='device')
+
 
     def __init__(self, name, description, type_device, serial_number, teamviwer,
-        location):
+        location, marca, model, system):
         self.name = name
         self.description = description
         self.type_device = type_device
@@ -82,10 +99,20 @@ class Device(db.Model):
         self.serial_number = serial_number
         self.teamviwer = teamviwer
         self.location = location
+        self.model = model
+        self.marca = marca
+        self.system = system
 
     def __repr__(self):
         return '<Device %r>' % self.name
 
     def resolv_type(self):
-        choices = {'dk': 'Desktop', 'lp': 'Laptop'}
-        return choices[self.type_device]
+        choice = {'dk': 'Desktop', 'lp': 'Laptop', 'imp': 'Impresora'}
+        return choice[self.type_device]
+
+    def resolv_system(self):
+        choice = {'wx': 'Windows XP', 'w7': 'Windows 7', 'w8': 'Windows 8/8.1',
+            'ws03': 'Windows Server 2003/R2', 'ws08': 'Windows Server 2008/R2',
+            'ws12': 'Windows Server 2012/R2', 'w10': 'Windows 10',
+            'ld': 'Linux Debian'}
+        return choice[self.system]
