@@ -11,23 +11,21 @@
 		<div class="col-md-8">
 			<form method='POST'>
 				{{ form.csrf_token }}
-					<div class="form-group">
-						{{ render_fields(form.user, class="form-control") }}
-					</div>
-					<div class="form-group">
-						{{ render_fields(form.device,class="form-control") }}
-					</div>
-					<div class="form-group">
-						{{ render_fields(form.notify) }}
-					</div>
-					<div class="form-group">
-						<button type="submit" class="btn btn-default form-control">Guardar</button>
-					</div>
+				<div class="form-group">
+					{{ render_fields(form.user, class="form-control") }}
+				</div>
+				<div class="form-group">
+					{{ render_fields(form.device,class="form-control") }}
+				</div>
+				<div class="form-group">
+					{{ render_fields(form.notify) }}
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-default form-control">Guardar</button>
 				</div>
 			</form>
 		</div>
 		<div class="col-md-2"></div>        
     </div>
 </div>
-
 {% endblock %}

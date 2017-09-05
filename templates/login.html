@@ -5,18 +5,22 @@
 <h2>LOGIN!</h2>
 {% endblock %}
 {% block content %}
-    <div class="col-md-3"></div>
-    <div class="col-md-6">
-        <form action="" method="POST">
-            {{ form.csrf_token }}
-            <div class="form-group">
-            {{ render_fields(form.username, class="form-control") }}
-            </div>
-            <div class="form-group">
-            {{ render_fields(form.password,class="form-control") }}
-            </div>
-            <button type="submit" class="btn btn-default">Loguear</button>
-        </form>
-    </div>
-    <div class="col-md-3"></div>
+<div class="container">
+	<div class="row">
+		<div class="col-md-3"></div>
+		<div class="col-md-6">
+			<form action="" method="POST">
+				{{ form.csrf_token }}
+				<div class="form-group">
+				{{ render_fields(form.username, class="form-control") }}
+				</div>
+				<div class="form-group">
+				{{ render_fields(form.password,class="form-control") }}
+				</div>
+				<button type="submit" class="btn btn-default">Loguear</button>
+			</form>
+		</div>
+		<div class="col-md-3"></div>
+	</div>
+</div>
 {% endblock %}

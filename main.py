@@ -306,17 +306,21 @@ def view_devices(did=None):
 def del_device(id):
     dev = Device.query.filter(Device.id == id).one_or_none()
     if dev is not None:
-        try:
-            db.session.delete(dev)
-            db.session.commit()
-            flash(('success', 'Dispositivo se borro exitosamente!.'))
-            return redirect(url_for('new_device'))
-        except Exception as e:
-            print(e)
-            flash(('danger', 'Lo sentimos algo salio mal!.'))
-            return redirect(url_for('index'))
+        if dev.user_id is None:
+            try:
+                db.session.delete(dev)
+                db.session.commit()
+                flash(('success', 'Dispositivo se borro exitosamente!.'))
+                return redirect(url_for('view_devices'))
+            except Exception as e:
+                print(e)
+                flash(('danger', 'Lo sentimos algo salio mal!.'))
+                return redirect(url_for('index'))
+        else:
+            flash(('info', 'No es posible eliminar equipos asignados!.'))
+            return redirect(url_for('view_devices'))
     flash(('danger', 'Lo sentimos algo salio mal!.'))
-    return redirect(url_for('new_device'))
+    return redirect(url_for('view_devices'))
 
 
 @app.route('/device/state/<int:did>', methods=['GET'])

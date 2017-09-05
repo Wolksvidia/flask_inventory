@@ -11,8 +11,10 @@
 				<div class="panel-heading">Datos Personales</div>
 				<div class="panel-body">
 					<div class="col-md-6">
-						<h4>Nombre: {{user.username}}</h4>
+						<h4>Nombre: {{user.firstname}}</h4>
+						<h4>Apellido: {{user.lastname}}</h4>
 						<h4>E-mail: {{user.email}}</h4>
+						<h4>Telefono: {{user.phone}}</h4>
 					</div>
 					<div class="col-md-6">
 						{% if user.staff %}

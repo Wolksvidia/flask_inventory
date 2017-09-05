@@ -5,53 +5,55 @@
 <h2>Nuevo Dispositivo</h2>
 {% endblock %}
 {% block content %}
-
-<div class="col-md-2"></div>
-<div class="col-md-8">
-	<form method='POST'>
-		{{ form.csrf_token }}
-		<div class="row">
-		<div class="col-lg-4">
-			<div class="form-group">
-			{{ render_fields(form.name, class="form-control") }}
-			</div>
-			<div class="form-group">
-			{{ render_fields(form.type_device, class="form-control") }}
-			</div>
-			<div class="form-group">
-			{{ render_fields(form.teamviwer, class="form-control") }}
-			</div>
-			<div class="form-group">
-			{{ render_fields(form.location, class="form-control") }}
-			</div>
+<div class="contairen">
+	<div class="row">
+		<div class="col-md-2"></div>
+		<div class="col-md-8">
+			<form method='POST'>
+				{{ form.csrf_token }}
+				<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group">
+					{{ render_fields(form.name, class="form-control") }}
+					</div>
+					<div class="form-group">
+					{{ render_fields(form.type_device, class="form-control") }}
+					</div>
+					<div class="form-group">
+					{{ render_fields(form.teamviwer, class="form-control") }}
+					</div>
+					<div class="form-group">
+					{{ render_fields(form.location, class="form-control") }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+					{{ render_fields(form.marca, class="form-control") }}
+					</div>
+					<div class="form-group">
+					{{ render_fields(form.model, class="form-control") }}
+					</div>
+					<div class="form-group">
+					{{ render_fields(form.serial_number, class="form-control") }}
+					</div>
+					<div class="form-group">
+					{{ render_fields(form.system, class="form-control") }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+					{{ render_fields(form.description, class="form-control", rows="13") }}
+					</div>
+				</div>
+				</div>
+				<div class"row">
+					<div class="col-lg-4"></div>
+					<div class="col-lg-4"><button type="submit" class="btn btn-default form-control">Guardar</button></div>
+					<div class="col-lg-4"></div>
+				</div>
+			</form>
 		</div>
-		<div class="col-lg-4">
-			<div class="form-group">
-			{{ render_fields(form.marca, class="form-control") }}
-			</div>
-			<div class="form-group">
-			{{ render_fields(form.model, class="form-control") }}
-			</div>
-			<div class="form-group">
-			{{ render_fields(form.serial_number, class="form-control") }}
-			</div>
-			<div class="form-group">
-			{{ render_fields(form.system, class="form-control") }}
-			</div>
-		</div>
-		<div class="col-lg-4">
-			<div class="form-group">
-			{{ render_fields(form.description, class="form-control", rows="13") }}
-			</div>
-		</div>
-        </div>
-		<div class"row">
-		<div class="col-lg-4"></div>
-		<div class="col-lg-4"><button type="submit" class="btn btn-default form-control">Guardar</button></div>
-		<div class="col-lg-4"></div>
-		</div>
-	</form>
+		<div class="col-md-2"></div>
+	</div>
 </div>
-<div class="col-md-2"></div>
-
 {% endblock %}
