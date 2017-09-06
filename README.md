@@ -1,2 +1,2 @@
 # flask_inventory_test
-Aplicación de inventario de equipos, intenta resolver una cuestión particular, y contribuir a mi aprendizaje.
+Aplicación de inventario de equipos y gestion de asignaciones. Construida sobre Flask/Python3, Boostrap y DataTables.
