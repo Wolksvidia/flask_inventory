@@ -6,7 +6,6 @@ from wtforms.fields.html5 import EmailField
 from models import User, Location, Device
 
 
-
 #esta funcion verifica que el campo este vacio
 def length_honeypot(form, field):
     if len(field.data) > 0:
@@ -65,11 +64,12 @@ class CreateUserForm(FlaskForm):
     confirm = PasswordField('Repita la Password')
     location = SelectField('Location', coerce=int)
 
-    def validate_username(form, field):
-        username = field.data
-        user = User.query.filter_by(username=username).first()
-        if user is not None:
-            raise validators.ValidationError('El usuario ya se encuentra registrado!')
+    #def validate_username(form, field):
+        #username = field.data
+        #user = User.query.filter_by(username=username).first()
+        #if user is not None:
+            #raise validators.ValidationError('El usuario ya se encuentra registrado!')
+
 
 
 class CreateDevice(FlaskForm):

@@ -16,6 +16,7 @@ from helpers import date_format
 import flask_excel as excel
 import threading
 import forms
+from wtforms import validators
 
 app = Flask(__name__)
 #cargo las configuraciones desde clases
@@ -127,9 +128,36 @@ def logout():
 @app.route('/user/new', methods=['GET', 'POST'])
 @app.route('/user/new/<int:id>', methods=['GET', 'POST'])
 def new_user(id=None):
-    if id is None:
+    if id is not None:
+        user = User.query.filter(User.id == id).one_or_none()
+        if user is None:
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('view_user'))
+        if request.method == 'GET':
+            user_form = forms.CreateUserForm(obj=user)
+        elif request.method == 'POST':
+            user_form = forms.CreateUserForm(request.form)
+            user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
+            user_c = User.query.filter_by(username=user_form.username.data).one_or_none()
+            if user_c is not None and user_c.id != id:
+                raise validators.ValidationError('El usuario ya se encuentra registrado!')
+            if user_form.validate():
+                user_form.populate_obj(user)
+                try:
+                    db.session.add(user)
+                    db.session.commit()
+                    flash(('success', 'Usuario creado correctamente.'))
+                    return redirect(url_for('new_user'))
+                except Exception as e:
+                    print(e)
+                    flash(('danger', 'Lo sentimos algo salio mal!.'))
+                    return redirect(url_for('index'))
+    else:
         user_form = forms.CreateUserForm(request.form)
         user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
+        user = User.query.filter_by(username=user_form.username.data).first()
+        if user is not None:
+            raise validators.ValidationError('El usuario ya se encuentra registrado!')
         if request.method == 'POST' and user_form.validate():
             user = User(user_form.username.data,
                 user_form.email.data,
@@ -146,10 +174,8 @@ def new_user(id=None):
                 print(e)
                 flash(('danger', 'Lo sentimos algo salio mal!.'))
                 return redirect(url_for('index'))
-        return render_template('create_user.html', form=user_form)
-    else:
-        flash(('danger', 'FUNCION NO IMPLEMENTADA!.'))
-        return redirect(url_for('index'))
+    user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
+    return render_template('create_user.html', form=user_form)
 
 
 @app.route('/user/del/<int:id>')
