@@ -140,7 +140,8 @@ def new_user(id=None):
             user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
             user_c = User.query.filter_by(username=user_form.username.data).one_or_none()
             if user_c is not None and user_c.id != id:
-                raise validators.ValidationError('El usuario ya se encuentra registrado!')
+                flash(('danger', 'El usuario ya se encuentra registrado!'))
+                return render_template('create_user.html', form=user_form)
             if user_form.validate():
                 user_form.populate_obj(user)
                 try:
@@ -157,7 +158,8 @@ def new_user(id=None):
         user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
         user = User.query.filter_by(username=user_form.username.data).first()
         if user is not None:
-            raise validators.ValidationError('El usuario ya se encuentra registrado!')
+            flash(('danger', 'El usuario ya se encuentra registrado!'))
+            return render_template('create_user.html', form=user_form)
         if request.method == 'POST' and user_form.validate():
             user = User(user_form.username.data,
                 user_form.email.data,
