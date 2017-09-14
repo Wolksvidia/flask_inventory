@@ -13,12 +13,16 @@ from flask_script import Manager
 from config import DevelopmentConfig
 from models import db, User, Comment, Location, Device
 from helpers import date_format
+#api
+from flask_restful import Api
+from api import HelloWorld, Users, Devices, Locations
+#fin api
 import flask_excel as excel
 import threading
 import forms
-from wtforms import validators
 
 app = Flask(__name__)
+api = Api(app)
 #cargo las configuraciones desde clases
 app.config.from_object(DevelopmentConfig)
 #app.secret_key = 'estasdelachingadamano'
@@ -33,6 +37,12 @@ manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
 mail = Mail(app)
+
+#api resources
+api.add_resource(HelloWorld, '/api/hello')
+api.add_resource(Users, '/api/user', '/api/user/<int:uid>')
+api.add_resource(Devices, '/api/device', '/api/device/<int:did>')
+api.add_resource(Locations, '/api/location', '/api/location/<int:lid>')
 
 
 def send_email(username, email, message, subject):

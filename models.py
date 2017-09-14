@@ -41,6 +41,16 @@ class User(db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password, password)
 
+    def parse_user(self):
+        datos = {}
+        datos['id'] = self.id
+        datos['username'] = self.username
+        datos['first_name'] = self.first_name
+        datos['last_name'] = self.last_name
+        datos['email'] = self.email
+        datos['phone'] = self.phone
+        return datos
+
 
 class Comment(db.Model):
     __tablename__ = 'comments'
@@ -69,6 +79,12 @@ class Location(db.Model):
 
     def __repr__(self):
         return '<Location %r>' % self.location_name
+
+    def parse_location(self):
+        datos = {}
+        datos['id'] = self.id
+        datos['name'] = self.location_name
+        return datos
 
 
 class Device(db.Model):
@@ -116,3 +132,14 @@ class Device(db.Model):
             'ws12': 'Windows Server 2012/R2', 'w10': 'Windows 10',
             'ld': 'Linux Debian'}
         return choice[self.system]
+
+    def parse_device(self):
+        datos = {}
+        datos['id'] = self.id
+        datos['name'] = self.name
+        datos['type_device'] = self.resolv_type()
+        datos['active'] = self.active
+        datos['model'] = self.model
+        datos['marca'] = self.marca
+        datos['system'] = self.resolv_system()
+        return datos
