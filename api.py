@@ -12,17 +12,21 @@ class Users(Resource):
 
     def get(self, uid=None):
         if uid is None:
-            users = User.query.filter(User.username != 'admin').all()
+            users = User.query.filter(User.username != 'admin').join(Location).add_columns(Location.location_name).order_by(User.username).all()
             lista = []
-            for u in users:
-                lista.append(u.parse_user())
+            for u, l in users:
+                user = u.parse_user()
+                user['location'] = l
+                lista.append(user)
             return lista
         else:
-            user = User.query.filter(User.id == uid).one_or_none()
+            user = User.query.filter(User.id == uid).join(Location).add_columns(Location.location_name).one_or_none()
             if user is None:
                 return None
             else:
-                return user.parse_user()
+                data = user[0].parse_user()
+                data['location'] = user[1]
+                return data
 
 
 class Devices(Resource):
