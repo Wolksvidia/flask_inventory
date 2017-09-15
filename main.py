@@ -16,7 +16,6 @@ from helpers import date_format
 import flask_excel as excel
 import threading
 import forms
-from wtforms import validators
 
 app = Flask(__name__)
 #cargo las configuraciones desde clases
@@ -40,6 +39,7 @@ def send_email(username, email, message, subject):
     msg = Message(subject,
         sender=app.config['MAIL_USERNAME'],
         recipients=[email, ])
+    msg.add_recipient('helpdesk@dadalogistica.com.ar')
 #renderizo un template como cuerpo de mensaje
     msg.html = render_template('mail.html', user=username, message=message)
     mail.send(msg)
