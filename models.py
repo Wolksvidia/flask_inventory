@@ -142,4 +142,5 @@ class Device(db.Model):
         datos['model'] = self.model
         datos['marca'] = self.marca
         datos['system'] = self.resolv_system()
+        datos['description'] = self.description
         return datos
