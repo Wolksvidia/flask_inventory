@@ -29,21 +29,30 @@ class Users(Resource):
                 return data
 
 
-class Devices(Resource):
+class DeviceId(Resource):
 
     def get(self, did=None):
-        if did is None:
-            devs = Device.query.all()
-            lista = []
-            for d in devs:
-                lista.append(d.parse_device())
-            return lista
+        dev = Device.query.filter(Device.id == did).one_or_none()
+        if dev is None:
+            return None, 404
         else:
-            dev = Device.query.filter(Device.id == did).one_or_none()
-            if dev is None:
-                return None
-            else:
-                return dev.parse_device()
+            return dev.parse_device()
+
+    def put(self, did=None):
+        return {'id': did}
+
+
+class Devices(Resource):
+
+    def get(self):
+        devs = Device.query.all()
+        lista = []
+        for d in devs:
+            lista.append(d.parse_device())
+        return lista
+
+    def post(self):
+        return None, 200
 
 
 class Locations(Resource):

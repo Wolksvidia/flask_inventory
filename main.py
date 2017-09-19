@@ -15,21 +15,21 @@ from models import db, User, Comment, Location, Device
 from helpers import date_format
 #api
 from flask_restful import Api
-from api import HelloWorld, Users, Devices, Locations
+from api import HelloWorld, Users, Devices, DeviceId, Locations
 #fin api
 import flask_excel as excel
 import threading
 import forms
 
 app = Flask(__name__)
-api = Api(app)
+
 #cargo las configuraciones desde clases
 app.config.from_object(DevelopmentConfig)
 #app.secret_key = 'estasdelachingadamano'
 csrf = CSRFProtect()
 csrf.init_app(app)
 #csrf = CSRFProtect(app)
-
+api = Api(app)
 #para que la db tome las configuraciones de config
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -41,7 +41,8 @@ mail = Mail(app)
 #api resources
 api.add_resource(HelloWorld, '/api/hello')
 api.add_resource(Users, '/api/user', '/api/user/<int:uid>')
-api.add_resource(Devices, '/api/device', '/api/device/<int:did>')
+api.add_resource(Devices, '/api/device')
+api.add_resource(DeviceId, '/api/device/<int:did>')
 api.add_resource(Locations, '/api/location', '/api/location/<int:lid>')
 
 
