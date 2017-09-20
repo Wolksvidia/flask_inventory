@@ -1,5 +1,9 @@
 from models import User, Location, Device
-from flask_restful import Resource
+from flask import Blueprint, request
+from flask_restful import Resource, Api
+
+api_blueprint = Blueprint('inventory_api', __name__)
+api = Api(api_blueprint)
 
 
 class HelloWorld(Resource):
@@ -39,7 +43,7 @@ class DeviceId(Resource):
             return dev.parse_device()
 
     def put(self, did=None):
-        return {'id': did}
+        return {'id': did}, 200
 
 
 class Devices(Resource):
@@ -52,7 +56,24 @@ class Devices(Resource):
         return lista
 
     def post(self):
-        return None, 200
+        #parser = reqparse.RequestParser()
+        #parser.add_argument('devs', type=list, location='json')
+        lista = request.get_json(force=True)
+        dev = Device(name=lista['name'],
+                serial_number='',
+                description=lista['description'],
+                teamviwer='',
+                type_device='dk', location=lista['location'],
+                marca='', model='',
+                system='w7')
+                #system=lista['system'])
+        #try:
+            #db.session.add(dev)
+            #db.session.commit()
+        #except Exception as e:
+            #print(e)
+            #return e, 500
+        return dev.parse_device()
 
 
 class Locations(Resource):
@@ -70,3 +91,11 @@ class Locations(Resource):
                 return None
             else:
                 return loc.parse_location()
+
+
+#api resources
+api.add_resource(HelloWorld, '/api/hello')
+api.add_resource(Users, '/api/user', '/api/user/<int:uid>')
+api.add_resource(Devices, '/api/device')
+api.add_resource(DeviceId, '/api/device/<int:did>')
+api.add_resource(Locations, '/api/location', '/api/location/<int:lid>')
