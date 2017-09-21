@@ -11,7 +11,7 @@ from flask_mail import Mail, Message
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from config import DevelopmentConfig
-from models import db, User, Comment, Location, Device
+from models import dbm as db, User, Comment, Location, Device
 from helpers import date_format
 #api
 from api import api_blueprint
@@ -34,6 +34,7 @@ app.register_blueprint(api_blueprint)
 csrf.exempt(api_blueprint)
 #para que la db tome las configuraciones de config
 db.init_app(app)
+
 migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
@@ -521,7 +522,3 @@ def docustomexport():
     return excel.make_response_from_query_sets(dev_list,
         column_names=column_names, file_type="xlsx", file_name='devic')
 
-
-if __name__ == '__main__':
-    manager.run()
-    #app.run(port=8000)

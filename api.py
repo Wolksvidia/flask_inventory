@@ -1,4 +1,4 @@
-from models import User, Location, Device
+from models import User, Location, Device, dbm
 from flask import Blueprint, request
 from flask_restful import Resource, Api
 
@@ -67,12 +67,12 @@ class Devices(Resource):
                 marca='', model='',
                 system='w7')
                 #system=lista['system'])
-        #try:
-            #db.session.add(dev)
-            #db.session.commit()
-        #except Exception as e:
-            #print(e)
-            #return e, 500
+        try:
+            dbm.session.add(dev)
+            dbm.session.commit()
+        except Exception as e:
+            print(e)
+            return None, 500
         return dev.parse_device()
 
 
