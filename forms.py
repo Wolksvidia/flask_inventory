@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, HiddenField, PasswordField, TextAreaField, SelectField, BooleanField
 from wtforms import validators
 from wtforms.fields.html5 import EmailField
-#from models import User, Location, Device
+from models import User, Location, Device
 
 
 #esta funcion verifica que el campo este vacio

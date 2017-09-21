@@ -1,4 +1,4 @@
-from models import User, Location, Device, dbm
+from models import User, Location, Device
 from flask import Blueprint, request
 from flask_restful import Resource, Api
 
@@ -61,18 +61,18 @@ class Devices(Resource):
         lista = request.get_json(force=True)
         dev = Device(name=lista['name'],
                 serial_number='',
-                description=lista['description'],
+                #description=lista['description'],
+                description='',
                 teamviwer='',
                 type_device='dk', location=lista['location'],
                 marca='', model='',
                 system='w7')
                 #system=lista['system'])
         try:
-            dbm.session.add(dev)
-            dbm.session.commit()
+            dev.add()
         except Exception as e:
             print(e)
-            return None, 500
+            return e, 500
         return dev.parse_device()
 
 

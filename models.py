@@ -7,7 +7,21 @@ import datetime
 dbm = SQLAlchemy()
 
 
-class User(dbm.Model):
+class CRUD():
+
+    def add(self):
+        dbm.session.add(self)
+        return dbm.session.commit()
+
+    def update(self):
+        return dbm.session.commit()
+
+    def delete(self):
+        dbm.session.delete(self)
+        return dbm.session.commit()
+
+
+class User(dbm.Model, CRUD):
     __tablename__ = 'users'
     id = dbm.Column(dbm.Integer, primary_key=True)
     username = dbm.Column(dbm.String(50), unique=True)
@@ -52,7 +66,7 @@ class User(dbm.Model):
         return datos
 
 
-class Comment(dbm.Model):
+class Comment(dbm.Model, CRUD):
     __tablename__ = 'comments'
     id = dbm.Column(dbm.Integer, primary_key=True)
     text = dbm.Column(dbm.Text)
@@ -69,12 +83,13 @@ class Comment(dbm.Model):
         self.create_date = datetime.datetime.now()
 
 
-class Location(dbm.Model):
+class Location(dbm.Model, CRUD):
     __tablename__ = 'locations'
     id = dbm.Column(dbm.Integer, primary_key=True)
     location_name = dbm.Column(dbm.String(50), unique=True)
 
     def __init__(self, name):
+        self.id = None
         self.location_name = name
 
     def __repr__(self):
@@ -87,7 +102,7 @@ class Location(dbm.Model):
         return datos
 
 
-class Device(dbm.Model):
+class Device(dbm.Model, CRUD):
     __tablename__ = 'devices'
     id = dbm.Column(dbm.Integer, primary_key=True)
     name = dbm.Column(dbm.String(50), unique=True)
@@ -107,6 +122,7 @@ class Device(dbm.Model):
 
     def __init__(self, name, description, type_device, serial_number, teamviwer,
         location, marca, model, system):
+        self.id = None
         self.name = name
         self.description = description
         self.type_device = type_device
