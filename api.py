@@ -61,18 +61,16 @@ class Devices(Resource):
         lista = request.get_json(force=True)
         dev = Device(name=lista['name'],
                 serial_number='',
-                #description=lista['description'],
-                description='',
+                description=lista['description'],
                 teamviwer='',
                 type_device='dk', location=lista['location'],
-                marca='', model='',
-                system='w7')
-                #system=lista['system'])
+                marca=lista['marca'], model=lista['model'],
+                system=lista['system'])
         try:
             dev.add()
         except Exception as e:
             print(e)
-            return e, 500
+            return {'error': 'Lo sentimos un error a ocurrido!'}, 500
         return dev.parse_device()
 
 

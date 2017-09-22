@@ -144,8 +144,8 @@ class Device(dbm.Model, CRUD):
 
     def resolv_system(self):
         choice = {'wx': 'Windows XP', 'w7': 'Windows 7', 'w8': 'Windows 8/8.1',
-            'ws03': 'Windows Server 2003/R2', 'ws08': 'Windows Server 2008/R2',
-            'ws12': 'Windows Server 2012/R2', 'w10': 'Windows 10',
+            'w2003Server': 'Windows Server 2003/R2', 'w2008Server': 'Windows Server 2008/R2',
+            'w2012Server': 'Windows Server 2012/R2', 'w10': 'Windows 10',
             'ld': 'Linux Debian'}
         return choice[self.system]
 
