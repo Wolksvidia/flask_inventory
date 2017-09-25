@@ -11,26 +11,33 @@ from flask_mail import Mail, Message
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from config import DevelopmentConfig
-from models import db, User, Comment, Location, Device
+from models import dbm as db, User, Comment, Location, Device
 from helpers import date_format
+#api
+from api import api_blueprint
+#fin api
 import flask_excel as excel
 import threading
 import forms
 
 app = Flask(__name__)
+
 #cargo las configuraciones desde clases
 app.config.from_object(DevelopmentConfig)
 #app.secret_key = 'estasdelachingadamano'
 csrf = CSRFProtect()
 csrf.init_app(app)
 #csrf = CSRFProtect(app)
-
+#api = Api(app)
+# Agrego la api mediante blueprint
+app.register_blueprint(api_blueprint)
+csrf.exempt(api_blueprint)
 #para que la db tome las configuraciones de config
 db.init_app(app)
+
 migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
-
 mail = Mail(app)
 
 
@@ -50,8 +57,9 @@ with app.app_context():
     user = User(username='admin', email='admin@example.com',
         password='admin', staff=True)
     try:
-        db.session.add(user)
-        db.session.commit()
+        user.add()
+        #db.session.add(user)
+        #db.session.commit()
     except Exception as e:
         print(e)
 
@@ -145,8 +153,9 @@ def new_user(id=None):
             if user_form.validate():
                 user_form.populate_obj(user)
                 try:
-                    db.session.add(user)
-                    db.session.commit()
+                    user.update()
+                    #db.session.add(user)
+                    #db.session.commit()
                     flash(('success', 'Usuario creado correctamente.'))
                     return redirect(url_for('new_user'))
                 except Exception as e:
@@ -168,8 +177,9 @@ def new_user(id=None):
                 user_form.last_name.data,
                 user_form.location.data, user_form.phone.data)
             try:
-                db.session.add(user)
-                db.session.commit()
+                user.add()
+                #db.session.add(user)
+                #db.session.commit()
                 flash(('success', 'Usuario creado correctamente.'))
                 return redirect(url_for('new_user'))
             except Exception as e:
@@ -186,8 +196,9 @@ def del_user(id):
     if user is not None:
         if len(user.device_id) is 0:
             try:
-                db.session.delete(user)
-                db.session.commit()
+                user.delete()
+                #db.session.delete(user)
+                #db.session.commit()
                 flash(('success', 'Usuario borrado exitosamente!.'))
                 return redirect(url_for('view_user'))
             except Exception as e:
@@ -279,8 +290,12 @@ def new_device(id=None):
                 marca=form.marca.data, model=form.model.data,
                 system=form.system.data)
         try:
-            db.session.add(dev)
-            db.session.commit()
+            if dev.id is None:
+                dev.add()
+            else:
+                dev.update()
+            #db.session.add(dev)
+            #db.session.commit()
             flash(('success', 'Dispositivo guardado exitosamente!.'))
             return redirect(url_for('new_device'))
         except Exception as e:
@@ -336,8 +351,9 @@ def del_device(id):
     if dev is not None:
         if dev.user_id is None:
             try:
-                db.session.delete(dev)
-                db.session.commit()
+                dev.delete()
+                #db.session.delete(dev)
+                #db.session.commit()
                 flash(('success', 'Dispositivo se borro exitosamente!.'))
                 return redirect(url_for('view_devices'))
             except Exception as e:
@@ -360,8 +376,9 @@ def change_device_state(did):
                 dev.active = False
             else:
                 dev.active = True
-            db.session.add(dev)
-            db.session.commit()
+            dev.update()
+            #db.session.add(dev)
+            #db.session.commit()
             flash(('success', 'Estado cambiado exitosamente!.'))
             return redirect(url_for('view_devices', did=dev.id))
         except Exception as e:
@@ -388,8 +405,9 @@ def assign_device():
         if (dev and user) is not None:
             dev.user_id = user.id
             try:
-                db.session.add(dev)
-                db.session.commit()
+                dev.update()
+                #db.session.add(dev)
+                #db.session.commit()
                 flash(('success', 'Dispositivo guardado exitosamente!.'))
                 username = user.username
                 email = user.email
@@ -418,8 +436,9 @@ def unassign_device(did):
     if (dev and uid) is not None:
         dev.user_id = None
         try:
-            db.session.add(dev)
-            db.session.commit()
+            dev.update()
+            #db.session.add(dev)
+            #db.session.commit()
             flash(('success', 'Dispositivo se borro exitosamente!.'))
             return redirect(url_for('view_user', uid=uid))
         except Exception as e:
@@ -436,8 +455,9 @@ def add_comment(did):
     if request.method == 'POST' and form.validate():
         comment = Comment(session['user_id'], did, form.comment.data)
         try:
-            db.session.add(comment)
-            db.session.commit()
+            comment.add()
+            #db.session.add(comment)
+            #db.session.commit()
             flash(('success', 'Comentario guardado exitosamente!.'))
             return redirect(url_for('view_devices', did=did))
         except Exception as e:
@@ -453,8 +473,9 @@ def del_comment(did, cid):
     cm = Comment.query.filter(Comment.id == cid).one_or_none()
     if cm is not None:
         try:
-            db.session.delete(cm)
-            db.session.commit()
+            cm.delete()
+            #db.session.delete(cm)
+            #db.session.commit()
             flash(('success', 'El comentario se borro exitosamente!.'))
             return redirect(url_for('view_devices', did=did))
         except Exception as e:
@@ -483,14 +504,18 @@ def new_location(id=None):
         else:
             loc = Location(name=form.name.data)
         try:
-            db.session.add(loc)
-            db.session.commit()
+            if loc.id is None:
+                loc.add()
+            else:
+                loc.update()
+            #db.session.add(loc)
+            #db.session.commit()
             flash(('success', 'Locacion guardado exitosamente!.'))
             return redirect(url_for('new_location'))
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
-    return render_template('new_location.html',form=form, locations=locations)
+    return render_template('new_location.html', form=form, locations=locations)
 
 
 @app.route('/location/del/<int:id>')
@@ -498,14 +523,16 @@ def del_location(id):
     loc = Location.query.filter(Location.id == id).one_or_none()
     if loc is not None:
         try:
-            db.session.delete(loc)
-            db.session.commit()
+            loc.delete()
+            #db.session.delete(loc)
+            #db.session.commit()
             flash(('success', 'Locacion se borro exitosamente!.'))
             return redirect(url_for('new_location'))
         except Exception as e:
             print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
     return redirect(url_for('new_location'))
+
 
 #ver pq esto no anda
 @app.route("/excel", methods=['GET'])
@@ -516,7 +543,3 @@ def docustomexport():
     return excel.make_response_from_query_sets(dev_list,
         column_names=column_names, file_type="xlsx", file_name='devic')
 
-
-if __name__ == '__main__':
-    manager.run()
-    #app.run(port=8000)
