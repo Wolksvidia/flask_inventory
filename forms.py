@@ -1,33 +1,22 @@
 # -*- coding: utf-8 -*-
+
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, PasswordField, TextAreaField, SelectField, BooleanField
+from wtforms import (StringField, HiddenField, PasswordField, TextAreaField,
+    SelectField, BooleanField)
 from wtforms import validators
 from wtforms.fields.html5 import EmailField
-from models import User, Location, Device
+from models import Location, Device
 
 
-#esta funcion verifica que el campo este vacio
 def length_honeypot(form, field):
+    """Funciion que verifica que el campo esta vacio"""
     if len(field.data) > 0:
         raise validators.ValidationError('El campo debe ser vacio.')
 
 
 class CommentForm(FlaskForm):
     comment = TextAreaField('Comentario')
-    #el siguiente campo tiene una validacion personalizada
     honeypot = HiddenField('', [length_honeypot])
-"""
-    username = StringField('Username',
-        [
-        validators.DataRequired(message='El usuario es requerido.'),
-        validators.Length(min=4, max=25, message='Ingrese un usuario valido.'),
-        ])
-    email = EmailField('Email',
-        [
-        validators.DataRequired(message='El email es requerido.'),
-        validators.Email(message='Ingrese un email valido.')
-        ])
-"""
 
 
 class LoginForm(FlaskForm):
@@ -71,7 +60,6 @@ class CreateUserForm(FlaskForm):
             #raise validators.ValidationError('El usuario ya se encuentra registrado!')
 
 
-
 class CreateDevice(FlaskForm):
     name = StringField('Device Name', [
         validators.DataRequired(message='El nombre es requerido.'),
@@ -87,7 +75,8 @@ class CreateDevice(FlaskForm):
     model = StringField('Model')
     system = SelectField('System', default='', choices=[('wx', 'Windows XP'),
         ('w7', 'Windows 7'), ('w8', 'Windows 8/8.1'),
-        ('w2003Server', 'Windows Server 2003/R2'), ('w2008Server', 'Windows Server 2008/R2'),
+        ('w2003Server', 'Windows Server 2003/R2'),
+        ('w2008Server', 'Windows Server 2008/R2'),
         ('w2012Server', 'Windows Server 2012/R2'), ('w10', 'Windows 10'),
         ('ld', 'Linux Debian')])
 
@@ -136,9 +125,7 @@ class UpdateDevice(FlaskForm):
 
 
 class CreateLocation(FlaskForm):
-    name = StringField('Location Name',[
-        validators.DataRequired(message='El nombre es requerido.'),
-        ])
+    name = StringField('Location Name',[validators.DataRequired(message='El nombre es requerido.'),])
 
     def validate_name(form, field):
         name = field.data
@@ -151,5 +138,3 @@ class AssignDevice(FlaskForm):
     user = SelectField('Users', coerce=int)
     device = SelectField('Devices', coerce=int)
     notify = BooleanField('¿Notificar al usuario?')
-    #user_list = FieldList(users)
-    #device_list = FieldList(devices)

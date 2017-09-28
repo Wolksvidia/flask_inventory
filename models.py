@@ -1,5 +1,6 @@
-from flask_sqlalchemy import SQLAlchemy
+# -*- coding: utf-8 -*-
 
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 import datetime
@@ -8,7 +9,8 @@ dbm = SQLAlchemy()
 
 
 class CRUD():
-
+    """Clase para la implementacion de las operciones de DB Add, Update,
+    Delete como metodos desde los objetos"""
     def add(self):
         dbm.session.add(self)
         return dbm.session.commit()
@@ -36,7 +38,8 @@ class User(dbm.Model, CRUD):
     device_id = dbm.relationship('Device', back_populates='user')
     comment_id = dbm.relationship('Comment', back_populates='user')
 
-    def __init__(self, username, email, password=None, staff=False, first_name=None, last_name=None, location=None, phone=None):
+    def __init__(self, username, email, password=None, staff=False,
+        first_name=None, last_name=None, location=None, phone=None):
             self.username = username
             self.email = email
             self.password = self._create_password(password)
@@ -50,12 +53,17 @@ class User(dbm.Model, CRUD):
         return '<User %r>' % self.username
 
     def _create_password(self, password):
+        """Genera un hash a paratir de la password"""
         return generate_password_hash(password)
 
     def verify_password(self, password):
+        """Verifica que la password suministrada
+        concuerde con la almacenada"""
         return check_password_hash(self.password, password)
 
     def parse_user(self):
+        """Genera un diccionario con los datos del objeto User
+        para poder ser transformados a json"""
         datos = {}
         datos['id'] = self.id
         datos['username'] = self.username
@@ -96,6 +104,8 @@ class Location(dbm.Model, CRUD):
         return '<Location %r>' % self.location_name
 
     def parse_location(self):
+        """Genera un diccionario con los datos del objeto Location
+        para poder ser transformados a json"""
         datos = {}
         datos['id'] = self.id
         datos['name'] = self.location_name
@@ -119,7 +129,6 @@ class Device(dbm.Model, CRUD):
     user = dbm.relationship('User', back_populates='device_id')
     comments = dbm.relationship('Comment', back_populates='device')
 
-
     def __init__(self, name, description, type_device, serial_number, teamviwer,
         location, marca, model, system):
         self.id = None
@@ -139,17 +148,23 @@ class Device(dbm.Model, CRUD):
         return '<Device %r>' % self.name
 
     def resolv_type(self):
+        """Metodo que devuelve el tipo de dispositivo de manera legible por
+        humanos"""
         choice = {'dk': 'Desktop', 'lp': 'Laptop', 'imp': 'Impresora'}
         return choice[self.type_device]
 
     def resolv_system(self):
+        """Metodo que devuelve el nombre del sistema operativo"""
         choice = {'wx': 'Windows XP', 'w7': 'Windows 7', 'w8': 'Windows 8/8.1',
-            'w2003Server': 'Windows Server 2003/R2', 'w2008Server': 'Windows Server 2008/R2',
+            'w2003Server': 'Windows Server 2003/R2',
+            'w2008Server': 'Windows Server 2008/R2',
             'w2012Server': 'Windows Server 2012/R2', 'w10': 'Windows 10',
             'ld': 'Linux Debian'}
         return choice[self.system]
 
     def parse_device(self):
+        """Genera un diccionario con los datos del objeto Device
+        para poder ser transformados a json"""
         datos = {}
         datos['id'] = self.id
         datos['name'] = self.name

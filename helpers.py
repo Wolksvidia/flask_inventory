@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+
+
 def date_format(date):
+    """Hace un formateo a fecha larga"""
     meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo',
         'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre',
         'Noviembre', 'Diciembre']
