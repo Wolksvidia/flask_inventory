@@ -9,7 +9,7 @@ import urllib3
 import json
 import os
 
-URL_BASE = 'http://192.168.64.233:5000'
+URL_BASE = 'http://127.0.0.1:5000'
 URL_LOC = '/api/location'
 URL_DEV = '/api/device'
 
