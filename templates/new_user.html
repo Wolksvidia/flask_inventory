@@ -5,6 +5,11 @@
 <h2>Nuevo Usuario</h2>
 {% endblock %}
 {% block content %}
+<style type="text/css">
+	.ocultar{
+		display: none;
+	}
+</style>
 <div class="container">
 	<form method='POST'>
 	{{ form.csrf_token }}
@@ -59,7 +64,7 @@
 					</div>
 				  </div>
 				</div>
-				<div class="panel panel-default">
+				<div id="panel_password" class="panel panel-default ocultar">
 				  <div class="panel-heading" role="tab" id="headingThree">
 					<h4 class="panel-title">
 					  <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
@@ -96,4 +101,17 @@
 		<div class="col-md-12"><br/><br/></div>
 	</div>
 </div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">
+	$(function(){
+		$('#staff').click(function(){
+			if($('#staff').prop('checked')){
+				$('#panel_password').show();
+			}else{
+				$('#panel_password').hide();
+			}
+		});
+	});
+</script>
 {% endblock %}
