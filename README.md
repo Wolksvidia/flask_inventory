@@ -7,5 +7,5 @@ Se implento una pequeña api con Flask-Restful para posibilitar el relevamiento 
 
 ### Example
 ```
-Deployed on Heroku: https://flask-inventory.herokuapp.com (User: admin | password: admin)
+Deployed on Heroku: [flask-inventory.herokuapp.com](https://flask-inventory.herokuapp.com) with User: admin and password: admin .
 ```
