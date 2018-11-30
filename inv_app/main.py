@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import threading
-import forms
 
 from flask import (Flask, abort, request, render_template,
     session, url_for, redirect, flash, copy_current_request_context)
@@ -11,6 +10,7 @@ from models import dbm as db, User, Comment, Location, Device
 from helpers import date_format
 from api import api_blueprint
 from configs import ProductionConfig, DevelopmentConfig
+from forms import (CommentForm, LoginForm, CreateUserForm, CreateDevice, UpdateDevice, CreateLocation, AssignDevice)
 
 app = Flask(__name__)
 
@@ -83,7 +83,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """User login, por default se carga un usuario admin de password admin"""
-    login_form = forms.LoginForm(request.form)
+    login_form = LoginForm(request.form)
     if request.method == 'POST' and login_form.validate():
         username = login_form.username.data
         password = login_form.password.data
@@ -126,10 +126,10 @@ def new_user(id=None):
             return redirect(url_for('view_user'))
         if request.method == 'GET':
             #Lleno el formulario con datos del usuario
-            user_form = forms.CreateUserForm(obj=user)
+            user_form = CreateUserForm(obj=user)
         elif request.method == 'POST':
             #El formulario viene con datos para actualizar
-            user_form = forms.CreateUserForm(request.form)
+            user_form = CreateUserForm(request.form)
             user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
             user_c = User.query.filter_by(username=user_form.username.data).one_or_none()
             if user_c and user_c.id != id:
@@ -147,7 +147,7 @@ def new_user(id=None):
                     return redirect(url_for('index'))
     else:
         #Nuevo Usuario
-        user_form = forms.CreateUserForm(request.form)
+        user_form = CreateUserForm(request.form)
         user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
         user_d = User.query.filter_by(username=user_form.username.data).first()
         if user_d:
@@ -219,9 +219,9 @@ def view_user(uid=None):
 def new_device(id=None):
     """Creacion y actualizacion de objetos Device"""
     if id is None:
-        form = forms.CreateDevice(request.form)
+        form = CreateDevice(request.form)
     else:
-        form = forms.UpdateDevice(request.form)
+        form = UpdateDevice(request.form)
     form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
     if request.method == 'GET' and id:
         dev = Device.query.filter(Device.id == id).one_or_none()
@@ -275,7 +275,7 @@ def view_devices(did=None):
             print(e)
             flash(('danger', 'Dispositivo no encontrado!.'))
             return redirect(url_for('index'))
-        form = forms.CommentForm(request.form)
+        form = CommentForm(request.form)
         return render_template('view_device.html', dev=dev, form=form,
             date_format=date_format)
         
@@ -331,7 +331,7 @@ def change_device_state(did):
 @app.route('/device/assign', methods=['GET', 'POST'])
 def assign_device():
     """Tratamineto de la asignacion de dispositivos a usuarios"""
-    form = forms.AssignDevice(request.form)
+    form = AssignDevice(request.form)
     if request.method == 'GET':
         form.device.choices = [(g.id, g.name) for g in Device.query.filter(Device.user_id == None).filter(Device.active).order_by('name').all()]
         if len(form.device.choices) is 0:
@@ -393,7 +393,7 @@ def unassign_device(did):
 def add_comment(did):
     """Agrega un comentario a un dispositivo como seguimiento del eventos
     asociados al mismo"""
-    form = forms.CommentForm(request.form)
+    form = CommentForm(request.form)
     if request.method == 'POST' and form.validate():
         comment = Comment(session['user_id'], did, form.comment.data)
         try:
@@ -430,7 +430,7 @@ def del_comment(did, cid):
 def new_location(id=None):
     """Agregado y actualizacion de ojetos Location"""
     locations = Location.query.order_by('location_name').all()
-    form = forms.CreateLocation(request.form)
+    form = CreateLocation(request.form)
     if request.method == 'GET' and id:
         loc = Location.query.filter(Location.id == id).one_or_none()
         if loc:
