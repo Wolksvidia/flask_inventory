@@ -1,1 +1,1 @@
-web: gunicorn inv_app.main:app
+web: gunicorn main:app
