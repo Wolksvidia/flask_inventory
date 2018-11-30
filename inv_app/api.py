@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from models import User, Location, Device
+from .models import User, Location, Device
 from flask import Blueprint, request
 from flask_restful import Resource, Api
 
