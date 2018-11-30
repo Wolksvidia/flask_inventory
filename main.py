@@ -10,14 +10,14 @@ from flask_mail import Mail, Message
 from models import dbm as db, User, Comment, Location, Device
 from helpers import date_format
 from api import api_blueprint
-from configs import ProductionConfig
+from configs import ProductionConfig, DevelopmentConfig
 
 app = Flask(__name__)
 
 #cargo las configuraciones desde la clase
 
-#app.config.from_object(DevelopmentConfig)
-app.config.from_object(ProductionConfig)
+app.config.from_object(DevelopmentConfig)
+#app.config.from_object(ProductionConfig)
 
 csrf = CSRFProtect()
 csrf.init_app(app)

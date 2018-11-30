@@ -5,6 +5,4 @@ Flask-WTF==0.14.2
 Flask-RESTful
 Jinja2==2.9.5
 WTForms==2.1
-Gunicorn==19.7.1
-psycopg2==2.7.3.2
 SQLAlchemy-Utils==0.32.21
