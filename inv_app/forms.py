@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import (StringField, HiddenField, PasswordField, TextAreaField,
     SelectField, BooleanField, validators)
 from wtforms.fields.html5 import EmailField
-from models import Location, Device
+from .models import Location, Device
 
 
 def length_honeypot(form, field):

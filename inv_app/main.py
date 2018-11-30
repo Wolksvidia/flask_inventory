@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 import threading
-import forms
+import .forms
 
 from flask import (Flask, abort, request, render_template,
     session, url_for, redirect, flash, copy_current_request_context)
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail, Message
 
-from models import dbm as db, User, Comment, Location, Device
-from helpers import date_format
-from api import api_blueprint
-from configs import ProductionConfig
+from .models import dbm as db, User, Comment, Location, Device
+from .helpers import date_format
+from .api import api_blueprint
+from .configs import ProductionConfig
 
 app = Flask(__name__)
 
