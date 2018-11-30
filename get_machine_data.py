@@ -9,7 +9,7 @@ import urllib3
 import json
 import os
 
-URL_BASE = 'http://127.0.0.1:5000'
+URL_BASE = 'http://127.0.0.1:8080'
 URL_LOC = '/api/location'
 URL_DEV = '/api/device'
 
@@ -34,11 +34,11 @@ def device(loc, desc, marca, modelo):
 http = urllib3.PoolManager()
 
 #obtencion del lista de localidades
-response = http.request('GET', URL_BASE + URL_LOC)
-locations = json.loads(response.data.decode('utf-8'))
+#response = http.request('GET', URL_BASE + URL_LOC)
+#locations = json.loads(response.data.decode('utf-8'))
 
 #generacion de una lista de id de localidad para usarlo como validacion
-loc_ids = [l.get('id') for l in locations]
+#loc_ids = [l.get('id') for l in locations]
 
 #obtencion de los datos del comando systeminfo
 command = 'systeminfo'
@@ -83,17 +83,17 @@ for d in datos:
         lista.append(d)
 
 #Seleccion y validacion del id de localidad elejido por el usuario
-print(locations)
-lid = eval(input('Ingrese el id de la localidad: '))
-isApple = False if int(lid) in loc_ids else True
-while isApple:
-    print('Seleccione un id correcto')
-    print(locations)
-    lid = eval(input('Ingrese el id de la localidad: '))
-    isApple = False if int(lid) in loc_ids else True
+#print(locations)
+#lid = eval(input('Ingrese el id de la localidad: '))
+#isApple = False if int(lid) in loc_ids else True
+#while isApple:
+#    print('Seleccione un id correcto')
+#    print(locations)
+#    lid = eval(input('Ingrese el id de la localidad: '))
+#    isApple = False if int(lid) in loc_ids else True
 
 #Armado del diccionario de datos y Codificacion del diccionario a json
-r = device(lid, desc, marca, modelo)
+r = device(1, desc, marca, modelo)
 encoded_data = json.dumps(r).encode('utf-8')
 
 response = http.request('POST', URL_BASE + URL_DEV,
@@ -103,3 +103,4 @@ response = http.request('POST', URL_BASE + URL_DEV,
 print('*=========RESPONSE===========*')
 print(response.status)
 print(json.loads(response.data.decode('utf-8')))
+

@@ -14,28 +14,28 @@ class Users(Resource):
             users = User.query.filter(User.username != 'admin').join(Location).add_columns(Location.location_name).order_by(User.username).all()
             lista = []
             for u, l in users:
-                user = u.parse_user()
-                user['location'] = l
+                user = u.json()
+                user.update({'location': l})
                 lista.append(user)
             return lista
         else:
             user = User.query.filter(User.id == uid).join(Location).add_columns(Location.location_name).one_or_none()
-            if user is None:
-                return None
+            if user:
+                data = user[0].json()
+                data.update({'location': user[1]})
+                return data, 200
             else:
-                data = user[0].parse_user()
-                data['location'] = user[1]
-                return data
+                return None, 404
 
 
 class DeviceId(Resource):
     def get(self, did):
         """Se retorna el dispositivo solicitado en la url si es que existe"""
         dev = Device.query.filter(Device.id == did).one_or_none()
-        if dev is None:
-            return None, 404
+        if dev:
+            return dev.json()
         else:
-            return dev.parse_device()
+            return None, 404
 
     def put(self, did):
         """El metodo obtiene los datos json del dispositvo a acrtualizar
@@ -43,8 +43,6 @@ class DeviceId(Resource):
         """
         dev = Device.query.filter(Device.id == did).one_or_none()
         if dev is None:
-            return None, 404
-        else:
             lista = request.get_json(force=True)
             dev.name = lista['name']
             dev.marca = lista['marca']
@@ -61,7 +59,9 @@ class DeviceId(Resource):
             except Exception as e:
                 print(e)
                 return {'error': 'Lo sentimos un error a ocurrido!'}, 500
-            return dev.parse_device()
+            return dev.json()
+        else:
+            return None, 404            
 
 
 class Devices(Resource):
@@ -70,7 +70,7 @@ class Devices(Resource):
         devs = Device.query.all()
         lista = []
         for d in devs:
-            lista.append(d.parse_device())
+            lista.append(d.json())
         return lista
 
     def post(self):
@@ -89,25 +89,25 @@ class Devices(Resource):
         except Exception as e:
             print(e)
             return {'error': 'Lo sentimos un error a ocurrido!'}, 500
-        return dev.parse_device()
+        return dev.json()
 
 
 class Locations(Resource):
     def get(self, lid=None):
         """Se retorna la lista completa de localidades, si un lid valido no es
         suministrado en la url"""
-        if lid is None:
-            locs = Location.query.all()
-            lista = []
-            for loc in locs:
-                lista.append(loc.parse_location())
-            return lista
-        else:
+        if lid:
             loc = Location.query.filter(Location.id == lid).one_or_none()
             if loc is None:
                 return None
             else:
-                return loc.parse_location()
+                return loc.json()
+        else:
+            locs = Location.query.all()
+            lista = []
+            for loc in locs:
+                lista.append(loc.json())
+            return lista            
 
 
 api_blueprint = Blueprint('inventory_api', __name__)

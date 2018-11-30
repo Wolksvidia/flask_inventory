@@ -2,8 +2,7 @@
 
 from flask_wtf import FlaskForm
 from wtforms import (StringField, HiddenField, PasswordField, TextAreaField,
-    SelectField, BooleanField)
-from wtforms import validators
+    SelectField, BooleanField, validators)
 from wtforms.fields.html5 import EmailField
 from models import Location, Device
 
