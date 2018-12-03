@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import threading
 
 from flask import (Flask, abort, request, render_template,
@@ -9,14 +10,14 @@ from flask_mail import Mail, Message
 from models import dbm as db, User, Comment, Location, Device
 from helpers import date_format
 from api import api_blueprint
-from configs import ProductionConfig, DevelopmentConfig
+#from configs import ProductionConfig, DevelopmentConfig
 from forms import (CommentForm, LoginForm, CreateUserForm, CreateDevice, UpdateDevice, CreateLocation, AssignDevice)
 
 app = Flask(__name__)
 
 #cargo las configuraciones desde la clase
-
-app.config.from_object(DevelopmentConfig)
+app.config.from_object(os.getenv('APP_CONFIG','configs.DevelopmentConfig'))
+#app.config.from_object(DevelopmentConfig)
 #app.config.from_object(ProductionConfig)
 
 csrf = CSRFProtect()
