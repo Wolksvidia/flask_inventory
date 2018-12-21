@@ -1,8 +1,9 @@
-Flask==0.12
-Flask-Script==2.0.5
-Flask-SQLAlchemy==2.2
-Flask-WTF==0.14.2
+Flask
+Flask-Mail
+Flask-SQLAlchemy
+Flask-WTF
 Flask-RESTful
-Jinja2==2.9.5
-WTForms==2.1
-SQLAlchemy-Utils==0.32.21
+WTForms
+Gunicorn
+psycopg2-binary
+SQLAlchemy-Utils
