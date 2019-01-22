@@ -1,0 +1,22 @@
+#Imagen que requiere que los archivos de la aplicacion sean copiados desde la maquina
+#en que se genera la imagen
+FROM alpine:3.8
+
+RUN apk add --no-cache python3 postgresql-dev build-base python3-dev && \
+    pip3 install --upgrade pip setuptools && \
+    rm -r /root/.cache
+
+RUN mkdir -p /app/web
+WORKDIR /app/web
+
+COPY requerimientos.txt /app/web
+
+RUN pip3 install --no-cache-dir -r requerimientos.txt
+
+COPY . /app/web
+
+ENV APP_CONFIG_INV configs.ProductionConfig
+
+EXPOSE 8000/tcp
+
+ENTRYPOINT ["/usr/bin/gunicorn", "-w 2", "-b", ":8000", "main:app"]

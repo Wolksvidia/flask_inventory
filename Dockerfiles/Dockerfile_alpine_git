@@ -1,0 +1,22 @@
+#Para la contruccion de la imagen se clona el repo que contiene la app via https
+FROM alpine:3.8 
+
+RUN apk add --no-cache python3 postgresql-dev build-base python3-dev git && \
+    pip3 install --upgrade pip setuptools && \
+    rm -r /root/.cache
+
+RUN mkdir -p /app/web
+
+WORKDIR /app/web/
+
+RUN git clone https://github.com/Wolksvidia/flask_inventory.git
+
+RUN pip3 install --no-cache-dir -r ./flask_inventory/requerimientos.txt
+
+WORKDIR /app/web/flask_inventory/inv_app
+
+ENV APP_CONFIG_INV configs.ProductionConfig
+
+EXPOSE 8000/tcp
+
+ENTRYPOINT ["/usr/bin/gunicorn", "-w 2", "-b", ":8000", "main:app", "--chdir ./inv_app/"]
