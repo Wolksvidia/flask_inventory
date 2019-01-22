@@ -8,3 +8,4 @@ Jinja2==2.9.5
 SQLAlchemy==1.2.14
 SQLAlchemy-Utils==0.32.21
 WTForms==2.1
+#esto es un test con respecto a los relases
