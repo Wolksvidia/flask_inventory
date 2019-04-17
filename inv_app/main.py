@@ -10,14 +10,14 @@ from flask_mail import Mail, Message
 from models import dbm as db, User, Comment, Location, Device
 from helpers import date_format
 from api import api_blueprint
-#from configs import ProductionConfig, DevelopmentConfig
+from configs import ProductionConfig, DevelopmentConfig
 from forms import (CommentForm, LoginForm, CreateUserForm, CreateDevice, UpdateDevice, CreateLocation, AssignDevice)
 
 app = Flask(__name__)
 
 #cargo las configuraciones desde la clase
-app.config.from_object(os.getenv('APP_CONFIG','configs.DevelopmentConfig'))
-#app.config.from_object(DevelopmentConfig)
+#app.config.from_object(os.getenv('APP_CONFIG','configs.DevelopmentConfig'))
+app.config.from_object(DevelopmentConfig)
 #app.config.from_object(ProductionConfig)
 
 csrf = CSRFProtect()
@@ -114,56 +114,58 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/user/new', methods=['GET', 'POST'])
-@app.route('/user/new/<int:id>', methods=['GET', 'POST'])
-def new_user(id=None):
-    """Agrega y actualiza los el objeto User"""
-    if id:
-        #Actualizacion
-        user = User.query.filter(User.id == id).one_or_none()
-        if user is None:
-            #El id no existe >> 404
+@app.route('/user/new', methods=['GET','POST'])
+def new_user():
+    """Agrega objeto User"""
+    #Nuevo Usuario
+    user_form = CreateUserForm(request.form)
+    user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
+    user_d = User.query.filter_by(username=user_form.username.data).first()
+    if user_d:
+        #El usuario ya existe
+        flash(('danger', 'El usuario ya se encuentra registrado, elija otro!'))
+    elif request.method == 'POST' and user_form.validate():
+        #Datos para el nuevo usuario
+        user_s = User(user_form.username.data,
+            user_form.email.data,
+            user_form.password.data,
+            user_form.staff.data, user_form.first_name.data,
+            user_form.last_name.data,
+            user_form.location.data, user_form.phone.data)
+        try:
+            user_s.add()
+            flash(('success', 'Usuario creado correctamente.'))
+            return redirect(url_for('new_user'))
+        except Exception as e:
+            print(e)
             flash(('danger', 'Lo sentimos algo salio mal!.'))
-            return redirect(url_for('view_user'))
-        if request.method == 'GET':
-            #Lleno el formulario con datos del usuario
-            user_form = CreateUserForm(obj=user)
-        elif request.method == 'POST':
-            #El formulario viene con datos para actualizar
-            user_form = CreateUserForm(request.form)
-            user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
-            user_c = User.query.filter_by(username=user_form.username.data).one_or_none()
-            if user_c and user_c.id != id:
-                flash(('danger', 'El usuario ya se encuentra registrado!'))
-                return render_template('new_user.html', form=user_form)
-            if user_form.validate():
-                user_form.populate_obj(user_c)
-                try:
-                    user.update()
-                    flash(('success', 'Usuario creado correctamente.'))
-                    return redirect(url_for('new_user'))
-                except Exception as e:
-                    print(e)
-                    flash(('danger', 'Lo sentimos algo salio mal!.'))
-                    return redirect(url_for('index'))
-    else:
-        #Nuevo Usuario
+            return redirect(url_for('index'))
+    return render_template('new_user.html', form=user_form)
+
+
+@app.route('/user/edit/<int:id>', methods=['GET','POST'])
+def edit_user(id=None):
+    #Actualizacion
+    user = User.query.filter(User.id == id).one_or_none()
+    if user is None:
+        #El id no existe >> 404
+        flash(('danger', 'Lo sentimos algo salio mal!.'))
+        return redirect(url_for('view_user'))
+    if request.method == 'GET':
+        #Lleno el formulario con datos del usuario
+        user_form = CreateUserForm(obj=user)
+    elif request.method == 'POST':
+        #El formulario viene con datos para actualizar
         user_form = CreateUserForm(request.form)
         user_form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
-        user_d = User.query.filter_by(username=user_form.username.data).first()
-        if user_d:
-            #El usuario ya existe
-            flash(('danger', 'El usuario ya se encuentra registrado, elija otro!'))
-        elif request.method == 'POST' and user_form.validate():
-            #Datos para el nuevo usuario
-            user_s = User(user_form.username.data,
-                user_form.email.data,
-                user_form.password.data,
-                user_form.staff.data, user_form.first_name.data,
-                user_form.last_name.data,
-                user_form.location.data, user_form.phone.data)
+        user_c = User.query.filter_by(username=user_form.username.data).one_or_none()
+        if user_c and user_c.id != id:
+            flash(('danger', 'El usuario ya se encuentra registrado!'))
+            return render_template('new_user.html', form=user_form)
+        if user_form.validate():
+            user_form.populate_obj(user_c)
             try:
-                user_s.add()
+                user.update()
                 flash(('success', 'Usuario creado correctamente.'))
                 return redirect(url_for('new_user'))
             except Exception as e:
