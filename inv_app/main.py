@@ -218,15 +218,35 @@ def view_user(uid=None):
 
 
 @app.route('/device/new', methods=['GET', 'POST'])
-@app.route('/device/new/<int:id>', methods=['GET', 'POST'])
-def new_device(id=None):
-    """Creacion y actualizacion de objetos Device"""
-    if id is None:
-        form = CreateDevice(request.form)
-    else:
-        form = UpdateDevice(request.form)
+def new_device():
+    """Creacion de objetos Device"""
+    form = CreateDevice(request.form)
     form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]
-    if request.method == 'GET' and id:
+    if request.method == 'POST' and form.validate():
+        dev = Device(name=form.name.data,
+            serial_number=form.serial_number.data,
+            description=form.description.data,
+            teamviwer=form.teamviwer.data,
+            type_device=form.type_device.data, location=form.location.data,
+            marca=form.marca.data, model=form.model.data,
+            system=form.system.data)
+        try:
+            dev.add()
+            flash(('success', 'Dispositivo guardado exitosamente!.'))
+            return redirect(url_for('new_device'))
+        except Exception as e:
+            print(e)
+            flash(('danger', 'Lo sentimos algo salio mal!.'))
+            return redirect(url_for('index'))
+    return render_template('new_device.html', form=form)
+
+
+@app.route('/device/edit/<int:id>', methods=['GET', 'POST'])
+def edit_device(id=None):
+    pass
+    """ form = UpdateDevice(request.form)
+    form.location.choices = [(g.id, g.location_name) for g in Location.query.order_by('location_name').all()]    
+    if request.method == 'GET':
         dev = Device.query.filter(Device.id == id).one_or_none()
         if dev:
             form.name.data = dev.name
@@ -241,30 +261,17 @@ def new_device(id=None):
         else:
             abort(404)
     if request.method == 'POST' and form.validate():
-        if id:
-            dev = Device.query.filter(Device.id == id).one()
-            form.populate_obj(dev)
-        else:
-            dev = Device(name=form.name.data,
-                serial_number=form.serial_number.data,
-                description=form.description.data,
-                teamviwer=form.teamviwer.data,
-                type_device=form.type_device.data, location=form.location.data,
-                marca=form.marca.data, model=form.model.data,
-                system=form.system.data)
-        try:
-            if dev.id is None:
-                dev.add()
-            else:
-                dev.update()
-            flash(('success', 'Dispositivo guardado exitosamente!.'))
-            return redirect(url_for('new_device'))
-        except Exception as e:
-            print(e)
-            flash(('danger', 'Lo sentimos algo salio mal!.'))
-            return redirect(url_for('index'))
-    return render_template('new_device.html', form=form)
-
+        dev = Device.query.filter(Device.id == id).one()
+        form.populate_obj(dev)
+    try:
+        dev.update()
+        flash(('success', 'Dispositivo guardado exitosamente!.'))
+        return redirect(url_for('new_device'))
+    except Exception as e:
+        print(e)
+        flash(('danger', 'Lo sentimos algo salio mal!.'))
+        return redirect(url_for('index'))
+    return render_template('new_device.html', form=form) """
 
 @app.route('/device/view', methods=['GET'])
 @app.route('/device/view/<int:did>', methods=['GET'])
